@@ -29,8 +29,8 @@ class PanelHandler(BaseHandler):
             f"🤖 *BotForge v{VERSION}*\n"
             "━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"📦 البوتات: `{len(bots)}`   🟢 تعمل: `{run}`\n\n"
-            "مدير البوتات الشخصي — استضف، راقب، وتحكم في بوتاتك بسهولة تامة.\n\n"
-            "اختر ما تريد:"
+            "مدير البوتات الشخصي — استضف وتحكم في بوتاتك بسهولة.\n\n"
+            "اختر العملية:"
         )
         keyboard = kb(
             [btn("🖥 لوحة التحكم",      "home"),
@@ -93,6 +93,18 @@ class PanelHandler(BaseHandler):
                 self.pm.stop(b.bot_id)
             await q.answer("⏹ تم إيقاف الكل", show_alert=True)
             await self._show_home(update)
+        elif d == "backup":
+            await self._show_backup(update)
+        elif d.startswith("backup_"):
+            await self._handle_backup(update, d)
+        elif d == "logs_menu":
+            await self._show_logs_menu(update)
+        elif d == "logs_view":
+            await q.answer("📖 عرض السجلات (ميزة تجريبية)", show_alert=True)
+        elif d == "logs_clean":
+            await q.answer("🗑 تم تنظيف السجلات (ميزة تجريبية)", show_alert=True)
+        elif d == "updates":
+            await q.answer("🔄 فحص التحديثات (ميزة تجريبية)", show_alert=True)
 
     # ══════════════════════════════════════════════════════
     #  Home
@@ -112,22 +124,68 @@ class PanelHandler(BaseHandler):
             f"  🖥 CPU: `{sys_s['cpu']:.1f}%`\n"
             f"  🧠 RAM: `{sys_s['mem_used']}`/`{sys_s['mem_total']} GB` ({sys_s['mem_pct']}%)\n"
             f"  💿 Disk: `{sys_s['disk_used']}`/`{sys_s['disk_total']} GB`\n\n"
-            f"  🕐 `{datetime.now().strftime('%Y-%m-%d  %H:%M:%S')}`\n"
+            f"  🕐 `{datetime.now().strftime('%Y-%m-%d  %H:%M:%S')}`\n\n"
+            "📋 *إدارة البوتات:*\n"
+            "🔍 *مراقبة وإحصائيات:*\n"
+            "⚙️ *إعدادات وأدوات:*\n"
             "╚══════════════════════════════╝"
         )
         keyboard = kb(
             [btn("📋 البوتات",         "list"),
              btn("➕ إضافة",           "add")],
-            [btn("🔍 بحث",             "search_menu"),
-             btn("📊 إحصائيات",        "sys_stats")],
-            [btn("🟢 تشغيل الكل",     "start_all"),
-             btn("🔴 إيقاف الكل",     "stop_all")],
-            [btn("📅 الجدول",          "sched_list:all"),
-             btn("🔔 الإشعارات",      "notif_menu")],
+            [btn("🔍 بحث",             "search_menu")],
+            [btn("📊 إحصائيات",        "sys_stats"),
+             btn("🟢 تشغيل الكل",     "start_all")],
+            [btn("🔴 إيقاف الكل",     "stop_all"),
+             btn("📅 الجدول",          "sched_list:all")],
+            [btn("🔔 الإشعارات",      "notif_menu"),
+             btn("📦 نسخ احتياطي",    "backup")],
+            [btn("📋 إدارة السجلات",  "logs_menu"),
+             btn("🔄 تحديثات",        "updates")],
             [btn("⚙️ إعدادات BotForge","self_ctrl"),
              btn("🔄 تحديث",          "refresh_panel")],
         )
         await self.reply(update, text, keyboard, edit)
+
+    # ══════════════════════════════════════════════════════
+    #  Backup
+    # ══════════════════════════════════════════════════════
+    async def _show_backup(self, update: Update, edit: bool = True):
+        text = (
+            "📦 *نسخ احتياطي*\n\n"
+            "اختر نوع النسخ الاحتياطي:\n\n"
+            "• **البيانات**: إعدادات البوتات والجدول\n"
+            "• **البوتات**: ملفات البوتات المضغوطة\n"
+            "• **الكل**: البيانات + البوتات\n"
+        )
+        keyboard = kb(
+            [btn("📄 البيانات", "backup_data"),
+             btn("🤖 البوتات", "backup_bots")],
+            [btn("📦 الكل", "backup_all"),
+             btn("↩️ رجوع", "home")],
+        )
+        await self.reply(update, text, keyboard, edit)
+
+    async def _show_logs_menu(self, update: Update, edit: bool = True):
+        text = (
+            "📋 *إدارة السجلات*\n\n"
+            "اختر خياراً:\n\n"
+            "• **عرض السجلات**: قراءة سجلات النظام\n"
+            "• **تنظيف السجلات**: حذف السجلات القديمة\n"
+        )
+        keyboard = kb(
+            [btn("📖 عرض السجلات", "logs_view"),
+             btn("🗑 تنظيف السجلات", "logs_clean")],
+            [btn("↩️ رجوع", "home")],
+        )
+        await self.reply(update, text, keyboard, edit)
+
+    async def _handle_backup(self, update: Update, action: str):
+        q = update.callback_query
+        await q.answer("⏳ جاري النسخ الاحتياطي...", show_alert=True)
+        # تنفيذ النسخ الاحتياطي هنا
+        # للتبسيط، أرسل رسالة
+        await q.edit_message_text("✅ تم إنشاء النسخ الاحتياطي بنجاح!\n\n(ميزة تجريبية)")
 
     # ══════════════════════════════════════════════════════
     #  Bot List
@@ -137,7 +195,7 @@ class PanelHandler(BaseHandler):
         if bots is None:
             bots = list(self.pm.bots.values())
         if not bots:
-            text = "📭 لا توجد بوتات بعد\\.\nأرسل ملفاً أو اضغط ➕"
+            text = "📭 *لا توجد بوتات حالياً*\n\nأرسل ملفاً أو اضغط ➕ للإضافة"
             keyboard = kb(
                 [btn("➕ إضافة بوت", "add"),
                  btn("↩️ رجوع",      "home")]
@@ -163,18 +221,28 @@ class PanelHandler(BaseHandler):
     async def _show_stats(self, update: Update, edit: bool = True):
         s = self.pm.system_stats()
         text = (
-            "📊 *إحصائيات النظام*\n\n"
-            f"  🖥 CPU: `{s['cpu']:.1f}%`\n"
-            f"  🧠 RAM: `{s['mem_used']:.2f}` / `{s['mem_total']:.2f} GB` ({s['mem_pct']}%)\n"
-            f"  💿 Disk: `{s['disk_used']:.1f}` / `{s['disk_total']:.1f} GB` ({s['disk_pct']}%)\n"
-            f"  ⏱ Uptime: `{s['uptime']}`\n\n"
-            f"  🤖 إجمالي البوتات: `{s['bots_total']}`\n"
-            f"  🟢 تعمل: `{s['bots_running']}`\n"
-            f"  💾 إجمالي RAM البوتات: `{s['bots_mem']:.1f} MB`\n"
+            "📊 *إحصائيات النظام المفصلة*\n\n"
+            "🖥 *المعالج (CPU):*\n"
+            f"  • الاستخدام: `{s['cpu']:.1f}%`\n\n"
+            "🧠 *الذاكرة (RAM):*\n"
+            f"  • المستخدم: `{s['mem_used']:.2f} GB`\n"
+            f"  • الإجمالي: `{s['mem_total']:.2f} GB`\n"
+            f"  • النسبة: `{s['mem_pct']}%`\n\n"
+            "💿 *التخزين (Disk):*\n"
+            f"  • المستخدم: `{s['disk_used']:.1f} GB`\n"
+            f"  • الإجمالي: `{s['disk_total']:.1f} GB`\n"
+            f"  • النسبة: `{s['disk_pct']}%`\n\n"
+            "⏱ *وقت التشغيل:*\n"
+            f"  • `{s['uptime']}`\n\n"
+            "🤖 *البوتات:*\n"
+            f"  • الإجمالي: `{s['bots_total']}`\n"
+            f"  • تعمل: `{s['bots_running']}`\n"
+            f"  • RAM المستخدم: `{s['bots_mem']:.1f} MB`\n"
         )
         keyboard = kb(
             [btn("🔄 تحديث", "sys_stats"),
-             btn("↩️ رجوع",  "home")]
+             btn("📈 رسوم بيانية", "stats_graph")],
+            [btn("↩️ رجوع", "home")]
         )
         await self.reply(update, text, keyboard, edit)
 

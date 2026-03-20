@@ -49,6 +49,7 @@ def build_handlers(app: Application, pm, scheduler, notifier):
         fallbacks=[CommandHandler("cancel", mgr.cmd_cancel)],
         allow_reentry=True,
         per_user=True,
+        per_message=True,
     )
 
     # ── Conversation: متغيرات البيئة ─────────────────────
@@ -61,6 +62,7 @@ def build_handlers(app: Application, pm, scheduler, notifier):
         fallbacks=[CommandHandler("cancel", mgr.cmd_cancel)],
         allow_reentry=True,
         per_user=True,
+        per_message=True,
     )
 
     # ── Conversation: جدولة ──────────────────────────────
@@ -77,6 +79,7 @@ def build_handlers(app: Application, pm, scheduler, notifier):
         fallbacks=[CommandHandler("cancel", mgr.cmd_cancel)],
         allow_reentry=True,
         per_user=True,
+        per_message=True,
     )
 
     # ── Conversation: تحديث الكود ────────────────────────
@@ -88,6 +91,7 @@ def build_handlers(app: Application, pm, scheduler, notifier):
         fallbacks=[CommandHandler("cancel", mgr.cmd_cancel)],
         allow_reentry=True,
         per_user=True,
+        per_message=True,
     )
 
     # ── Conversation: self_ctrl ───────────────────────────
@@ -102,6 +106,7 @@ def build_handlers(app: Application, pm, scheduler, notifier):
         fallbacks=[CommandHandler("cancel", mgr.cmd_cancel)],
         allow_reentry=True,
         per_user=True,
+        per_message=True,
     )
 
     # ── Conversation: bot_ctrl ────────────────────────────
@@ -116,6 +121,7 @@ def build_handlers(app: Application, pm, scheduler, notifier):
         fallbacks=[CommandHandler("cancel", mgr.cmd_cancel)],
         allow_reentry=True,
         per_user=True,
+        per_message=True,
     )
 
     # ── تسجيل المحادثات (بالترتيب — الأعلى أولوية أولاً) ─

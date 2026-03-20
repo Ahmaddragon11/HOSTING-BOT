@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ── هوية البوت ────────────────────────────────────────────────
-BOTFORGE_TOKEN: str = os.getenv("BOTFORGE_TOKEN", "8760554877:AAGGKSUL5dmtOU0uKT4vYnlpIpanTFTR1yA")
-BOTFORGE_OWNER: int = int(os.getenv("BOTFORGE_OWNER", "8049455831"))
+BOTFORGE_TOKEN: str = os.getenv("BOTFORGE_TOKEN", "")
+BOTFORGE_OWNER: int = int(os.getenv("BOTFORGE_OWNER", "0"))
 
 # ── المسارات ──────────────────────────────────────────────────
 BASE_DIR   = Path(__file__).parent.parent

@@ -43,9 +43,9 @@ class BotManager(BaseHandler):
         await update.message.reply_text(
             "➕ *إضافة بوت جديد*\n\n"
             "أرسل ملف البوت:\n"
-            "• `.zip` / `.tar.gz` — مجلد مضغوط\n"
-            "• `.py` — ملف Python مفرد\n\n"
-            "/cancel للإلغاء",
+            "• `.zip` أو `.tar.gz` — مجلد مضغوط\n"
+            "• `.py` — ملف Python واحد\n\n"
+            "اضغط /cancel للإلغاء",
             parse_mode=ParseMode.MARKDOWN,
         )
         return ST_FILE
@@ -81,9 +81,9 @@ class BotManager(BaseHandler):
         self.sess(update.effective_user.id)["name"] = name
         keyboard = kb([btn("⏭ تخطي (بدون توكن)", "skip_token")])
         await update.message.reply_text(
-            "🔑 *أدخل توكن البوت* (BOT\\_TOKEN):\n"
-            "_سيُمرَّر تلقائياً عند التشغيل_\n\n"
-            "أو اضغط **تخطي** إذا كان التوكن في ملف `.env`",
+            "🔑 *أدخل توكن البوت* (BOT_TOKEN):\n"
+            "_سيُضاف تلقائياً عند التشغيل_\n\n"
+            "أو اضغط **تخطي** إذا كان التوكن في `.env`",
             reply_markup=keyboard,
             parse_mode=ParseMode.MARKDOWN,
         )

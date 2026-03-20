@@ -75,6 +75,18 @@ logger = logging.getLogger("BotForge.Main")
 def main():
     logger.info("بدء تشغيل BotForge v4.0...")
 
+    # فحص الإعدادات الأساسية
+    if not BOTFORGE_TOKEN:
+        logger.error("BOTFORGE_TOKEN غير محدد! أضف التوكن في ملف .env")
+        print("❌ خطأ: BOTFORGE_TOKEN غير محدد!")
+        print("أضف التوكن في ملف .env في مجلد botforge/")
+        return
+    if BOTFORGE_OWNER == 0:
+        logger.error("BOTFORGE_OWNER غير محدد! أضف معرف المالك في ملف .env")
+        print("❌ خطأ: BOTFORGE_OWNER غير محدد!")
+        print("أضف معرف المالك في ملف .env في مجلد botforge/")
+        return
+
     # إنشاء المكونات الأساسية
     pm        = ProcessManager()
     scheduler = BotScheduler(pm)
