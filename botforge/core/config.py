@@ -13,15 +13,15 @@ BOTFORGE_TOKEN: str = os.getenv("BOTFORGE_TOKEN", "")
 BOTFORGE_OWNER: int = int(os.getenv("BOTFORGE_OWNER", "0"))
 
 # ── المسارات ──────────────────────────────────────────────────
-BASE_DIR   = Path(__file__).parent.parent
-BOTS_DIR   = BASE_DIR / "hosted_bots"
-LOGS_DIR   = BASE_DIR / "botforge_logs"
-DATA_DIR   = BASE_DIR / "data"
-TMP_DIR    = BASE_DIR / ".tmp"
+BASE_DIR = Path(__file__).parent.parent
+BOTS_DIR = BASE_DIR / "hosted_bots"
+LOGS_DIR = BASE_DIR / "botforge_logs"
+DATA_DIR = BASE_DIR / "data"
+TMP_DIR = BASE_DIR / ".tmp"
 
-STATE_FILE    = DATA_DIR / "state.json"
+STATE_FILE = DATA_DIR / "state.json"
 SCHEDULE_FILE = DATA_DIR / "schedules.json"
-NOTIF_FILE    = DATA_DIR / "notifications.json"
+NOTIF_FILE = DATA_DIR / "notifications.json"
 ENV_VARS_FILE = DATA_DIR / "env_vars.json"
 
 # إنشاء المجلدات
@@ -30,37 +30,42 @@ for _d in (BOTS_DIR, LOGS_DIR, DATA_DIR, TMP_DIR):
 
 # ── ثوابت البوت ───────────────────────────────────────────────
 VERSION = "4.0"
-MAX_LOG_LINES     = 500
-DEFAULT_LOG_TAIL  = 40
-AUTO_RESTART_DELAY = 4   # ثوانٍ
+MAX_LOG_LINES = 500
+DEFAULT_LOG_TAIL = 40
+AUTO_RESTART_DELAY = 4  # ثوانٍ
 MAX_RESTARTS_TRACK = 100
 
 # ── حالات الـ Conversation ────────────────────────────────────
 (
-    ST_FILE, ST_NAME, ST_TOKEN,
+    ST_FILE,
+    ST_NAME,
+    ST_TOKEN,
     ST_SC_VALUE,
     ST_BC_VALUE,
-    ST_ENV_KEY, ST_ENV_VAL,
-    ST_SCHEDULE_BOT, ST_SCHEDULE_ACTION, ST_SCHEDULE_TIME,
+    ST_ENV_KEY,
+    ST_ENV_VAL,
+    ST_SCHEDULE_BOT,
+    ST_SCHEDULE_ACTION,
+    ST_SCHEDULE_TIME,
     ST_UPDATE_FILE,
     ST_SEARCH,
 ) = range(12)
 
 # ── رموز الحالات ──────────────────────────────────────────────
 STATUS_EMOJI = {
-    "running":    "🟢",
-    "stopped":    "🔴",
-    "error":      "🟠",
+    "running": "🟢",
+    "stopped": "🔴",
+    "error": "🟠",
     "installing": "🔵",
-    "updating":   "🟡",
+    "updating": "🟡",
 }
 
 # ── إعدادات الإشعارات الافتراضية ─────────────────────────────
 DEFAULT_NOTIF_SETTINGS = {
-    "on_start":   True,
-    "on_stop":    True,
-    "on_error":   True,
-    "on_crash":   True,
-    "on_update":  True,
+    "on_start": True,
+    "on_stop": True,
+    "on_error": True,
+    "on_crash": True,
+    "on_update": True,
     "on_install": False,
 }

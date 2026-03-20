@@ -16,34 +16,50 @@ class BotInstance:
     """يمثل بوتاً مستضافاً واحداً"""
 
     __slots__ = (
-        "bot_id", "name", "path", "token", "main_file",
-        "process", "pid", "started_at", "status", "restarts",
-        "auto_restart", "logs", "log_file", "env_path",
-        "username", "description", "about",
-        "env_vars", "tags", "created_at", "last_updated",
+        "bot_id",
+        "name",
+        "path",
+        "token",
+        "main_file",
+        "process",
+        "pid",
+        "started_at",
+        "status",
+        "restarts",
+        "auto_restart",
+        "logs",
+        "log_file",
+        "env_path",
+        "username",
+        "description",
+        "about",
+        "env_vars",
+        "tags",
+        "created_at",
+        "last_updated",
     )
 
     def __init__(self, bot_id: str, name: str, path: Path, token: str = ""):
-        self.bot_id       = bot_id
-        self.name         = name
-        self.path         = path
-        self.token        = token
-        self.main_file    = ""
+        self.bot_id = bot_id
+        self.name = name
+        self.path = path
+        self.token = token
+        self.main_file = ""
         self.process: Optional[subprocess.Popen] = None
         self.pid: Optional[int] = None
         self.started_at: Optional[datetime] = None
-        self.status       = "stopped"
-        self.restarts     = 0
+        self.status = "stopped"
+        self.restarts = 0
         self.auto_restart = True
-        self.logs: deque  = deque(maxlen=MAX_LOG_LINES)
-        self.log_file     = LOGS_DIR / f"{bot_id}.log"
-        self.env_path     = path / ".venv"
-        self.username     = ""
-        self.description  = ""
-        self.about        = ""
-        self.env_vars: dict[str, str] = {}   # متغيرات بيئة مخصصة
-        self.tags: list[str] = []            # وسوم للتصفية
-        self.created_at   = datetime.now().isoformat()
+        self.logs: deque = deque(maxlen=MAX_LOG_LINES)
+        self.log_file = LOGS_DIR / f"{bot_id}.log"
+        self.env_path = path / ".venv"
+        self.username = ""
+        self.description = ""
+        self.about = ""
+        self.env_vars: dict[str, str] = {}  # متغيرات بيئة مخصصة
+        self.tags: list[str] = []  # وسوم للتصفية
+        self.created_at = datetime.now().isoformat()
         self.last_updated = self.created_at
 
     @property
@@ -87,20 +103,22 @@ class BotInstance:
     @classmethod
     def from_dict(cls, d: dict) -> "BotInstance":
         b = cls(d["bot_id"], d["name"], Path(d["path"]), d.get("token", ""))
-        b.main_file    = d.get("main_file", "")
+        b.main_file = d.get("main_file", "")
         b.auto_restart = d.get("auto_restart", True)
-        b.restarts     = d.get("restarts", 0)
-        b.username     = d.get("username", "")
-        b.description  = d.get("description", "")
-        b.about        = d.get("about", "")
-        b.env_vars     = d.get("env_vars", {})
-        b.tags         = d.get("tags", [])
-        b.created_at   = d.get("created_at", datetime.now().isoformat())
+        b.restarts = d.get("restarts", 0)
+        b.username = d.get("username", "")
+        b.description = d.get("description", "")
+        b.about = d.get("about", "")
+        b.env_vars = d.get("env_vars", {})
+        b.tags = d.get("tags", [])
+        b.created_at = d.get("created_at", datetime.now().isoformat())
         b.last_updated = d.get("last_updated", b.created_at)
         return b
 
-    def summary_line(self, show_stats: bool = False, cpu: float = 0, mem: float = 0) -> str:
-        e  = self.status_emoji
+    def summary_line(
+        self, show_stats: bool = False, cpu: float = 0, mem: float = 0
+    ) -> str:
+        e = self.status_emoji
         up = f"  ⏱`{self.uptime_str}`" if self.uptime_str else ""
         mb = f"  💾`{mem:.0f}MB`" if mem else ""
         return f"{e} *{self.name}* `[{self.bot_id}]`{up}{mb}"

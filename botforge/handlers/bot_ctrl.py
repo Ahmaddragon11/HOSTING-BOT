@@ -28,24 +28,26 @@ class BotCtrlHandler(BaseHandler):
             return ConversationHandler.END
         q = update.callback_query
         await q.answer()
-        field = q.data.split(":", 1)[1]   # name | desc | about | photo
+        field = q.data.split(":", 1)[1]  # name | desc | about | photo
 
         prompts = {
-            "name":  "✏️ أدخل الاسم الجديد لـ BotForge:",
-            "desc":  "📝 أدخل الوصف الجديد (حتى 512 حرف):",
+            "name": "✏️ أدخل الاسم الجديد لـ BotForge:",
+            "desc": "📝 أدخل الوصف الجديد (حتى 512 حرف):",
             "about": "💬 أدخل النبذة القصيرة (حتى 120 حرف):",
             "photo": "🖼 أرسل صورة جديدة لـ BotForge:",
         }
         self.sess(update.effective_user.id)["sc_field"] = field
-        await q.edit_message_text(prompts.get(field, "أدخل القيمة:") + "\n\n/cancel للإلغاء")
+        await q.edit_message_text(
+            prompts.get(field, "أدخل القيمة:") + "\n\n/cancel للإلغاء"
+        )
         return ST_SC_VALUE
 
     async def sc_text(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         if not self.is_owner(update):
             return ConversationHandler.END
-        uid   = update.effective_user.id
+        uid = update.effective_user.id
         field = self.sess(uid).get("sc_field", "")
-        text  = (update.message.text or "").strip()
+        text = (update.message.text or "").strip()
 
         if field == "photo":
             await update.message.reply_text("⚠️ أرسل صورة وليس نصاً.")
@@ -63,10 +65,14 @@ class BotCtrlHandler(BaseHandler):
 
         self.sess_clear(uid)
         keyboard = kb(
-            [btn("⚙️ إعدادات BotForge", "self_ctrl"),
-             btn("🏠 الرئيسية",          "home")]
+            [
+                btn("⚙️ إعدادات BotForge", "self_ctrl"),
+                btn("🏠 الرئيسية", "home"),
+            ]
         )
-        await update.message.reply_text(msg, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN)
+        await update.message.reply_text(
+            msg, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN
+        )
         return ConversationHandler.END
 
     # ══════════════════════════════════════════════════════
@@ -76,40 +82,45 @@ class BotCtrlHandler(BaseHandler):
         """يبدأ محادثة تغيير هوية بوت محتضن"""
         if not self.is_owner(update):
             return ConversationHandler.END
-        q      = update.callback_query
+        q = update.callback_query
         await q.answer()
-        parts  = q.data.split(":", 2)   # bc : field : bot_id
-        field  = parts[1]
+        parts = q.data.split(":", 2)  # bc : field : bot_id
+        field = parts[1]
         bot_id = parts[2]
-        bot    = self.pm.bots.get(bot_id)
+        bot = self.pm.bots.get(bot_id)
         if not bot:
             await q.answer("البوت غير موجود", show_alert=True)
             return ConversationHandler.END
         if not bot.token:
-            await q.answer("❌ لا يوجد توكن — لا يمكن التحكم في هوية البوت", show_alert=True)
+            await q.answer(
+                "❌ لا يوجد توكن — لا يمكن التحكم في هوية البوت",
+                show_alert=True,
+            )
             return ConversationHandler.END
 
         prompts = {
-            "name":  f"✏️ أدخل الاسم الجديد لـ {bot.name}:",
-            "desc":  "📝 أدخل الوصف الجديد:",
+            "name": f"✏️ أدخل الاسم الجديد لـ {bot.name}:",
+            "desc": "📝 أدخل الوصف الجديد:",
             "about": "💬 أدخل النبذة الجديدة:",
             "photo": "🖼 أرسل الصورة الجديدة:",
         }
         s = self.sess(update.effective_user.id)
-        s["bc_field"]  = field
+        s["bc_field"] = field
         s["bc_target"] = bot_id
-        await q.edit_message_text(prompts.get(field, "أدخل القيمة:") + "\n\n/cancel للإلغاء")
+        await q.edit_message_text(
+            prompts.get(field, "أدخل القيمة:") + "\n\n/cancel للإلغاء"
+        )
         return ST_BC_VALUE
 
     async def bc_text(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         if not self.is_owner(update):
             return ConversationHandler.END
-        uid    = update.effective_user.id
-        s      = self.sess(uid)
-        field  = s.get("bc_field", "")
+        uid = update.effective_user.id
+        s = self.sess(uid)
+        field = s.get("bc_field", "")
         bot_id = s.get("bc_target", "")
-        bot    = self.pm.bots.get(bot_id)
-        text   = (update.message.text or "").strip()
+        bot = self.pm.bots.get(bot_id)
+        text = (update.message.text or "").strip()
 
         if not bot or not bot.token:
             await update.message.reply_text("❌ البوت أو التوكن غير متوفر")
@@ -123,25 +134,32 @@ class BotCtrlHandler(BaseHandler):
         if field == "name":
             ok, msg = await BotController.set_name(bot.token, text)
             if ok:
-                bot.name = text; self.pm.save()
+                bot.name = text
+                self.pm.save()
         elif field == "desc":
             ok, msg = await BotController.set_description(bot.token, text)
             if ok:
-                bot.description = text; self.pm.save()
+                bot.description = text
+                self.pm.save()
         elif field == "about":
             ok, msg = await BotController.set_short_description(bot.token, text)
             if ok:
-                bot.about = text; self.pm.save()
+                bot.about = text
+                self.pm.save()
         else:
             self.sess_clear(uid)
             return ConversationHandler.END
 
         self.sess_clear(uid)
         keyboard = kb(
-            [btn("↩️ إعدادات البوت", f"bot_ctrl:{bot_id}"),
-             btn("🏠 الرئيسية",       "home")]
+            [
+                btn("↩️ إعدادات البوت", f"bot_ctrl:{bot_id}"),
+                btn("🏠 الرئيسية", "home"),
+            ]
         )
-        await update.message.reply_text(msg, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN)
+        await update.message.reply_text(
+            msg, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN
+        )
         return ConversationHandler.END
 
     # ══════════════════════════════════════════════════════
@@ -164,7 +182,7 @@ class BotCtrlHandler(BaseHandler):
 
         elif d.startswith("bc_fetch:"):
             bot_id = d.split(":", 1)[1]
-            bot    = self.pm.bots.get(bot_id)
+            bot = self.pm.bots.get(bot_id)
             if bot and bot.token:
                 info = await BotController.get_info(bot.token)
                 if "error" in info:
@@ -181,11 +199,15 @@ class BotCtrlHandler(BaseHandler):
                         f"  🔍 Inline: `{info.get('is_inline')}`\n"
                     )
                     keyboard = kb([btn("↩️ رجوع", f"bot_ctrl:{bot_id}")])
-                    await q.edit_message_text(text, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN)
+                    await q.edit_message_text(
+                        text,
+                        reply_markup=keyboard,
+                        parse_mode=ParseMode.MARKDOWN,
+                    )
 
         elif d.startswith("bc_del_photo:"):
             bot_id = d.split(":", 1)[1]
-            bot    = self.pm.bots.get(bot_id)
+            bot = self.pm.bots.get(bot_id)
             if bot and bot.token:
                 ok, msg = await BotController.delete_photo(bot.token)
                 await q.answer(msg, show_alert=True)
@@ -197,9 +219,9 @@ class BotCtrlHandler(BaseHandler):
     async def _show_self_ctrl(self, update: Update):
         text = "⚙️ *إعدادات BotForge*\n\nتحكم في هوية هذا البوت نفسه:"
         keyboard = kb(
-            [btn("✏️ الاسم",  "sc:name"),   btn("📝 الوصف",  "sc:desc")],
-            [btn("💬 النبذة", "sc:about"),  btn("🖼 الصورة", "sc:photo")],
-            [btn("↩️ رجوع",  "home")],
+            [btn("✏️ الاسم", "sc:name"), btn("📝 الوصف", "sc:desc")],
+            [btn("💬 النبذة", "sc:about"), btn("🖼 الصورة", "sc:photo")],
+            [btn("↩️ رجوع", "home")],
         )
         await self.reply(update, text, keyboard)
 
@@ -212,7 +234,8 @@ class BotCtrlHandler(BaseHandler):
         if not bot.token:
             if update.callback_query:
                 await update.callback_query.answer(
-                    "❌ لا يوجد توكن — لا يمكن التحكم في هوية البوت", show_alert=True
+                    "❌ لا يوجد توكن — لا يمكن التحكم في هوية البوت",
+                    show_alert=True,
                 )
             return
         text = (
@@ -223,12 +246,18 @@ class BotCtrlHandler(BaseHandler):
             "اختر ما تريد تعديله:"
         )
         keyboard = kb(
-            [btn("✏️ الاسم",         f"bc:name:{bot_id}"),
-             btn("📝 الوصف",         f"bc:desc:{bot_id}")],
-            [btn("💬 النبذة",        f"bc:about:{bot_id}"),
-             btn("🖼 الصورة",        f"bc:photo:{bot_id}")],
-            [btn("🗑 حذف الصورة",   f"bc_del_photo:{bot_id}"),
-             btn("ℹ️ جلب المعلومات", f"bc_fetch:{bot_id}")],
-            [btn("↩️ رجوع",         f"info:{bot_id}")],
+            [
+                btn("✏️ الاسم", f"bc:name:{bot_id}"),
+                btn("📝 الوصف", f"bc:desc:{bot_id}"),
+            ],
+            [
+                btn("💬 النبذة", f"bc:about:{bot_id}"),
+                btn("🖼 الصورة", f"bc:photo:{bot_id}"),
+            ],
+            [
+                btn("🗑 حذف الصورة", f"bc_del_photo:{bot_id}"),
+                btn("ℹ️ جلب المعلومات", f"bc_fetch:{bot_id}"),
+            ],
+            [btn("↩️ رجوع", f"info:{bot_id}")],
         )
         await self.reply(update, text, keyboard)

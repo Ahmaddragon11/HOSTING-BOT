@@ -21,7 +21,7 @@ logger = logging.getLogger("BotForge.Media")
 class MediaHandler(BaseHandler):
     def __init__(self, pm, bot_ctrl_handler):
         super().__init__(pm)
-        self._bctrl = bot_ctrl_handler   # BotCtrlHandler
+        self._bctrl = bot_ctrl_handler  # BotCtrlHandler
 
     # ══════════════════════════════════════════════════════
     #  صور ضمن محادثة self_ctrl
@@ -29,20 +29,22 @@ class MediaHandler(BaseHandler):
     async def sc_photo(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         if not self.is_owner(update):
             return ConversationHandler.END
-        uid   = update.effective_user.id
+        uid = update.effective_user.id
         field = self._bctrl.sess(uid).get("sc_field", "")
         if field != "photo":
             return ST_SC_VALUE
 
         data = await self._download_photo(update, ctx)
         from utils.bot_controller import SelfController
+
         ok, msg = await SelfController.set_photo(ctx.application.bot, data)
         self._bctrl.sess_clear(uid)
         keyboard = kb(
-            [btn("⚙️ إعدادات BotForge", "self_ctrl"),
-             btn("🏠 الرئيسية",          "home")]
+            [btn("⚙️ إعدادات BotForge", "self_ctrl"), btn("🏠 الرئيسية", "home")]
         )
-        await update.message.reply_text(msg, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN)
+        await update.message.reply_text(
+            msg, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN
+        )
         return ConversationHandler.END
 
     # ══════════════════════════════════════════════════════
@@ -51,9 +53,9 @@ class MediaHandler(BaseHandler):
     async def bc_photo(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         if not self.is_owner(update):
             return ConversationHandler.END
-        uid    = update.effective_user.id
-        s      = self._bctrl.sess(uid)
-        field  = s.get("bc_field", "")
+        uid = update.effective_user.id
+        s = self._bctrl.sess(uid)
+        field = s.get("bc_field", "")
         bot_id = s.get("bc_target", "")
 
         if field != "photo":
@@ -67,13 +69,15 @@ class MediaHandler(BaseHandler):
 
         data = await self._download_photo(update, ctx)
         from utils.bot_controller import BotController
+
         ok, msg = await BotController.set_photo(bot.token, data)
         self._bctrl.sess_clear(uid)
         keyboard = kb(
-            [btn("↩️ إعدادات البوت", f"bot_ctrl:{bot_id}"),
-             btn("🏠 الرئيسية",       "home")]
+            [btn("↩️ إعدادات البوت", f"bot_ctrl:{bot_id}"), btn("🏠 الرئيسية", "home")]
         )
-        await update.message.reply_text(msg, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN)
+        await update.message.reply_text(
+            msg, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN
+        )
         return ConversationHandler.END
 
     # ══════════════════════════════════════════════════════
@@ -88,12 +92,11 @@ class MediaHandler(BaseHandler):
 
         uid = update.effective_user.id
         msg = await update.message.reply_text(
-            "📥 *تم استلام ملف*\n\n"
-            "⏳ جاري التحميل… سأبدأ عملية الإضافة تلقائياً.",
+            "📥 *تم استلام ملف*\n\n" "⏳ جاري التحميل… سأبدأ عملية الإضافة تلقائياً.",
             parse_mode=ParseMode.MARKDOWN,
         )
-        tmp  = TMP_DIR / f"{uid}_{doc.file_name}"
-        tgf  = await ctx.bot.get_file(doc.file_id)
+        tmp = TMP_DIR / f"{uid}_{doc.file_name}"
+        tgf = await ctx.bot.get_file(doc.file_id)
         await tgf.download_to_drive(tmp)
 
         # نحتاج اسم — نطلبه
@@ -113,7 +116,7 @@ class MediaHandler(BaseHandler):
             return
         if not ctx.user_data.get("awaiting_name_free"):
             return
-        uid  = update.effective_user.id
+        uid = update.effective_user.id
         name = (update.message.text or "").strip()
         if not 1 <= len(name) <= 64:
             await update.message.reply_text("⚠️ الاسم 1–64 حرف — حاول مجدداً:")
@@ -132,9 +135,11 @@ class MediaHandler(BaseHandler):
     # ══════════════════════════════════════════════════════
     #  Helper
     # ══════════════════════════════════════════════════════
-    async def _download_photo(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> bytes:
+    async def _download_photo(
+        self, update: Update, ctx: ContextTypes.DEFAULT_TYPE
+    ) -> bytes:
         photo = update.message.photo[-1]
-        f     = await ctx.bot.get_file(photo.file_id)
-        buf   = io.BytesIO()
+        f = await ctx.bot.get_file(photo.file_id)
+        buf = io.BytesIO()
         await f.download_to_memory(buf)
         return buf.getvalue()

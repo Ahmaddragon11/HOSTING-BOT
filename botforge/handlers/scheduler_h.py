@@ -12,7 +12,9 @@ from telegram.ext import ContextTypes, ConversationHandler
 from telegram.constants import ParseMode
 
 from core.config import (
-    ST_SCHEDULE_BOT, ST_SCHEDULE_ACTION, ST_SCHEDULE_TIME,
+    ST_SCHEDULE_BOT,
+    ST_SCHEDULE_ACTION,
+    ST_SCHEDULE_TIME,
 )
 from handlers.base import BaseHandler
 from utils.keyboards import kb, btn
@@ -36,7 +38,9 @@ class SchedulerHandler(BaseHandler):
         await self._pick_bot(update, edit=False)
         return ST_SCHEDULE_BOT
 
-    async def start_schedule(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    async def start_schedule(
+        self, update: Update, ctx: ContextTypes.DEFAULT_TYPE
+    ) -> int:
         """يبدأ من زر sched_new:<bot_id>"""
         if not self.is_owner(update):
             return ConversationHandler.END
@@ -54,7 +58,7 @@ class SchedulerHandler(BaseHandler):
     async def pick_bot(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         if not self.is_owner(update):
             return ConversationHandler.END
-        q      = update.callback_query
+        q = update.callback_query
         await q.answer()
         bot_id = q.data.split(":", 1)[1]
         self.sess(update.effective_user.id)["sched_bot"] = bot_id
@@ -64,7 +68,7 @@ class SchedulerHandler(BaseHandler):
     async def pick_action(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         if not self.is_owner(update):
             return ConversationHandler.END
-        q      = update.callback_query
+        q = update.callback_query
         await q.answer()
         action = q.data.split(":", 1)[1]
         self.sess(update.effective_user.id)["sched_action"] = action
@@ -74,18 +78,18 @@ class SchedulerHandler(BaseHandler):
     async def get_time(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         if not self.is_owner(update):
             return ConversationHandler.END
-        uid    = update.effective_user.id
-        s      = self.sess(uid)
+        uid = update.effective_user.id
+        s = self.sess(uid)
         bot_id = s.get("sched_bot", "")
         action = s.get("sched_action", "start")
-        text   = (update.message.text or "").strip()
-        bot    = self.pm.bots.get(bot_id)
+        text = (update.message.text or "").strip()
+        bot = self.pm.bots.get(bot_id)
 
         jid, msg = self._parse_and_add(bot_id, action, text)
         self.sess_clear(uid)
 
         if jid:
-            nxt  = self.sch.next_run(jid)
+            nxt = self.sch.next_run(jid)
             name = bot.name if bot else bot_id
             reply = (
                 f"✅ *تم إنشاء المهمة المجدولة*\n\n"
@@ -99,10 +103,11 @@ class SchedulerHandler(BaseHandler):
             reply = f"❌ {msg}"
 
         keyboard = kb(
-            [btn("📅 الجدول الزمني", "sched_list:all"),
-             btn("🏠 الرئيسية",      "home")]
+            [btn("📅 الجدول الزمني", "sched_list:all"), btn("🏠 الرئيسية", "home")]
         )
-        await update.message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN)
+        await update.message.reply_text(
+            reply, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN
+        )
         return ConversationHandler.END
 
     # ══════════════════════════════════════════════════════
@@ -112,9 +117,9 @@ class SchedulerHandler(BaseHandler):
         if not self.is_owner(update):
             await update.callback_query.answer("⛔", show_alert=True)
             return
-        q  = update.callback_query
+        q = update.callback_query
         await q.answer()
-        d  = q.data
+        d = q.data
 
         if d.startswith("sched_list:"):
             scope = d.split(":", 1)[1]
@@ -126,8 +131,10 @@ class SchedulerHandler(BaseHandler):
 
         elif d.startswith("sched_del:"):
             jid = d.split(":", 1)[1]
-            ok  = self.sch.remove(jid)
-            await q.answer("✅ تم الحذف" if ok else "❌ المهمة غير موجودة", show_alert=True)
+            ok = self.sch.remove(jid)
+            await q.answer(
+                "✅ تم الحذف" if ok else "❌ المهمة غير موجودة", show_alert=True
+            )
             await self._show_list(update, "all")
 
     # ══════════════════════════════════════════════════════
@@ -142,18 +149,18 @@ class SchedulerHandler(BaseHandler):
         rows = [[btn(f"{b.status_emoji} {b.name}", f"spick:{b.bot_id}")] for b in bots]
         rows.append([btn("❌ إلغاء", "home")])
         await self.reply(
-            update,
-            "📅 *جدولة مهمة جديدة*\n\nاختر البوت:",
-            kb(*rows), edit
+            update, "📅 *جدولة مهمة جديدة*\n\nاختر البوت:", kb(*rows), edit
         )
 
     async def _pick_action(self, update: Update, bot_id: str):
-        bot  = self.pm.bots.get(bot_id)
+        bot = self.pm.bots.get(bot_id)
         name = bot.name if bot else bot_id
         keyboard = kb(
-            [btn("▶️ تشغيل",       f"sact:start"),
-             btn("⏹ إيقاف",        f"sact:stop"),
-             btn("🔄 إعادة تشغيل", f"sact:restart")],
+            [
+                btn("▶️ تشغيل", f"sact:start"),
+                btn("⏹ إيقاف", f"sact:stop"),
+                btn("🔄 إعادة تشغيل", f"sact:restart"),
+            ],
             [btn("❌ إلغاء", "home")],
         )
         await self.reply(
@@ -204,13 +211,18 @@ class SchedulerHandler(BaseHandler):
             # HH:MM [day]
             m = re.match(r"(\d{1,2}):(\d{2})(?:\s+(\w+))?", text)
             if m:
-                h   = m.group(1)
-                mn  = m.group(2)
+                h = m.group(1)
+                mn = m.group(2)
                 dow = m.group(3) or "*"
                 # تحويل الأيام العربية
                 day_map = {
-                    "الاثنين":"mon","الثلاثاء":"tue","الأربعاء":"wed",
-                    "الخميس":"thu","الجمعة":"fri","السبت":"sat","الأحد":"sun",
+                    "الاثنين": "mon",
+                    "الثلاثاء": "tue",
+                    "الأربعاء": "wed",
+                    "الخميس": "thu",
+                    "الجمعة": "fri",
+                    "السبت": "sat",
+                    "الأحد": "sun",
                 }
                 dow = day_map.get(dow, dow)
                 jid = self.sch.add_cron(bot_id, action, h, mn, dow)
@@ -225,20 +237,22 @@ class SchedulerHandler(BaseHandler):
             jobs = self.sch.list_all()
             title = "📅 *جميع المهام المجدولة:*"
         else:
-            jobs  = self.sch.list_for_bot(scope)
-            bot   = self.pm.bots.get(scope)
+            jobs = self.sch.list_for_bot(scope)
+            bot = self.pm.bots.get(scope)
             title = f"📅 *مهام {bot.name if bot else scope}:*"
 
         if not jobs:
             text = f"{title}\n\n📭 لا توجد مهام مجدولة"
-            keyboard = kb([btn("➕ جدولة جديدة", "sched_new:new"), btn("↩️ رجوع", "home")])
+            keyboard = kb(
+                [btn("➕ جدولة جديدة", "sched_new:new"), btn("↩️ رجوع", "home")]
+            )
             await self.reply(update, text, keyboard)
             return
 
         lines = [f"{title}\n"]
-        rows  = []
+        rows = []
         for j in jobs:
-            jid  = j["jid"]
+            jid = j["jid"]
             line = self.sch.format_job(jid, j)
             lines.append(line)
             rows.append([btn(f"🗑 حذف `{jid[:6]}`", f"sched_del:{jid}")])
@@ -247,19 +261,21 @@ class SchedulerHandler(BaseHandler):
         await self.reply(update, "\n".join(lines), kb(*rows))
 
     async def _show_bot_schedule(self, update: Update, bot_id: str):
-        bot  = self.pm.bots.get(bot_id)
+        bot = self.pm.bots.get(bot_id)
         name = bot.name if bot else bot_id
         jobs = self.sch.list_for_bot(bot_id)
         lines = [f"📅 *مهام البوت: {name}*\n"]
-        rows  = []
+        rows = []
         for j in jobs:
-            jid  = j["jid"]
+            jid = j["jid"]
             lines.append(self.sch.format_job(jid, j))
             rows.append([btn(f"🗑 {jid[:6]}", f"sched_del:{jid}")])
-        rows.append([
-            btn("➕ إضافة مهمة", f"sched_new:{bot_id}"),
-            btn("↩️ رجوع",       f"info:{bot_id}"),
-        ])
+        rows.append(
+            [
+                btn("➕ إضافة مهمة", f"sched_new:{bot_id}"),
+                btn("↩️ رجوع", f"info:{bot_id}"),
+            ]
+        )
         if not jobs:
             lines.append("📭 لا توجد مهام مجدولة لهذا البوت")
         await self.reply(update, "\n".join(lines), kb(*rows))

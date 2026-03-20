@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import logging
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -26,9 +26,9 @@ class BotScheduler:
     """يدير جدولة المهام المرتبطة بالبوتات"""
 
     def __init__(self, pm: "ProcessManager"):
-        self.pm  = pm
+        self.pm = pm
         self._sch = BackgroundScheduler(timezone="Asia/Riyadh")
-        self._jobs: dict[str, dict] = {}   # job_id -> info
+        self._jobs: dict[str, dict] = {}  # job_id -> info
         self._lock = threading.Lock()
         self._load()
 
@@ -85,7 +85,7 @@ class BotScheduler:
     def _register(self, jid: str, info: dict):
         """يسجل المهمة في APScheduler"""
         try:
-            ttype  = info.get("trigger_type", "cron")
+            ttype = info.get("trigger_type", "cron")
             bot_id = info["bot_id"]
             action = info["action"]
 
@@ -120,14 +120,22 @@ class BotScheduler:
     # ══════════════════════════════════════════════════════
     #  Public API
     # ══════════════════════════════════════════════════════
-    def add_cron(self, bot_id: str, action: str,
-                 hour: str, minute: str, day_of_week: str = "*") -> str:
-        import hashlib, time
-        jid = hashlib.md5(f"{bot_id}{action}{hour}{minute}{time.time()}".encode()).hexdigest()[:10]
+    def add_cron(
+        self, bot_id: str, action: str, hour: str, minute: str, day_of_week: str = "*"
+    ) -> str:
+        import hashlib
+        import time
+
+        jid = hashlib.md5(
+            f"{bot_id}{action}{hour}{minute}{time.time()}".encode()
+        ).hexdigest()[:10]
         info = dict(
-            bot_id=bot_id, action=action,
+            bot_id=bot_id,
+            action=action,
             trigger_type="cron",
-            hour=hour, minute=minute, day_of_week=day_of_week,
+            hour=hour,
+            minute=minute,
+            day_of_week=day_of_week,
             created=datetime.now().isoformat(),
         )
         with self._lock:
@@ -136,14 +144,21 @@ class BotScheduler:
             self._save()
         return jid
 
-    def add_interval(self, bot_id: str, action: str,
-                     hours: int = 0, minutes: int = 0) -> str:
-        import hashlib, time
-        jid = hashlib.md5(f"{bot_id}{action}{hours}{minutes}{time.time()}".encode()).hexdigest()[:10]
+    def add_interval(
+        self, bot_id: str, action: str, hours: int = 0, minutes: int = 0
+    ) -> str:
+        import hashlib
+        import time
+
+        jid = hashlib.md5(
+            f"{bot_id}{action}{hours}{minutes}{time.time()}".encode()
+        ).hexdigest()[:10]
         info = dict(
-            bot_id=bot_id, action=action,
+            bot_id=bot_id,
+            action=action,
             trigger_type="interval",
-            hours=hours, minutes=minutes,
+            hours=hours,
+            minutes=minutes,
             created=datetime.now().isoformat(),
         )
         with self._lock:
@@ -153,10 +168,13 @@ class BotScheduler:
         return jid
 
     def add_once(self, bot_id: str, action: str, run_at: datetime) -> str:
-        import hashlib, time as t
+        import hashlib
+        import time as t
+
         jid = hashlib.md5(f"{bot_id}{action}{t.time()}".encode()).hexdigest()[:10]
         info = dict(
-            bot_id=bot_id, action=action,
+            bot_id=bot_id,
+            action=action,
             trigger_type="once",
             run_at=run_at.isoformat(),
             created=datetime.now().isoformat(),
@@ -200,22 +218,31 @@ class BotScheduler:
 
     def format_job(self, jid: str, info: dict) -> str:
         actions = {"start": "▶️ تشغيل", "stop": "⏹ إيقاف", "restart": "🔄 إعادة"}
-        ttype   = info.get("trigger_type", "cron")
-        action  = actions.get(info.get("action", ""), info.get("action", ""))
-        bot     = self.pm.bots.get(info.get("bot_id", ""))
-        name    = bot.name if bot else info.get("bot_id", "؟")
-        nxt     = self.next_run(jid)
+        ttype = info.get("trigger_type", "cron")
+        action = actions.get(info.get("action", ""), info.get("action", ""))
+        bot = self.pm.bots.get(info.get("bot_id", ""))
+        name = bot.name if bot else info.get("bot_id", "؟")
+        nxt = self.next_run(jid)
 
         if ttype == "cron":
-            dow = info.get("day_of_week","*")
-            dow_ar = {"*":"يومياً","mon":"الاثنين","tue":"الثلاثاء","wed":"الأربعاء",
-                      "thu":"الخميس","fri":"الجمعة","sat":"السبت","sun":"الأحد"}.get(dow, dow)
+            dow = info.get("day_of_week", "*")
+            dow_ar = {
+                "*": "يومياً",
+                "mon": "الاثنين",
+                "tue": "الثلاثاء",
+                "wed": "الأربعاء",
+                "thu": "الخميس",
+                "fri": "الجمعة",
+                "sat": "السبت",
+                "sun": "الأحد",
+            }.get(dow, dow)
             when = f"{info.get('hour','*')}:{info.get('minute','00')} — {dow_ar}"
         elif ttype == "interval":
-            h = info.get("hours",0); m = info.get("minutes",0)
+            h = info.get("hours", 0)
+            m = info.get("minutes", 0)
             when = f"كل {h}h {m}m" if h else f"كل {m} دقيقة"
         elif ttype == "once":
-            when = info.get("run_at","")[:16]
+            when = info.get("run_at", "")[:16]
         else:
             when = "—"
 

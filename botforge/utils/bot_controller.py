@@ -19,15 +19,15 @@ class BotController:
     @staticmethod
     async def get_info(token: str) -> dict:
         try:
-            b  = Bot(token=token)
+            b = Bot(token=token)
             me = await b.get_me()
             await b.close()
             return {
-                "id":         me.id,
-                "username":   me.username or "",
+                "id": me.id,
+                "username": me.username or "",
                 "first_name": me.first_name or "",
-                "can_join":   me.can_join_groups,
-                "is_inline":  me.supports_inline_queries,
+                "can_join": me.can_join_groups,
+                "is_inline": me.supports_inline_queries,
             }
         except Exception as e:
             return {"error": str(e)}
@@ -53,12 +53,16 @@ class BotController:
 
     @staticmethod
     async def set_description(token: str, desc: str) -> tuple[bool, str]:
-        ok, msg = await BotController._api_post(token, "setMyDescription", description=desc)
+        ok, msg = await BotController._api_post(
+            token, "setMyDescription", description=desc
+        )
         return ok, "✅ تم تغيير الوصف" if ok else f"❌ {msg}"
 
     @staticmethod
     async def set_short_description(token: str, about: str) -> tuple[bool, str]:
-        ok, msg = await BotController._api_post(token, "setMyShortDescription", short_description=about)
+        ok, msg = await BotController._api_post(
+            token, "setMyShortDescription", short_description=about
+        )
         return ok, "✅ تم تغيير النبذة" if ok else f"❌ {msg}"
 
     @staticmethod
@@ -71,7 +75,9 @@ class BotController:
                 )
             d = r.json()
             ok = d.get("ok", False)
-            return ok, "✅ تم تغيير الصورة" if ok else f"❌ {d.get('description','فشل')}"
+            return ok, (
+                "✅ تم تغيير الصورة" if ok else f"❌ {d.get('description','فشل')}"
+            )
         except Exception as e:
             return False, f"❌ {e}"
 

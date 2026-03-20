@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING
 import psutil
 
 from core.config import (
-    BOTS_DIR, LOGS_DIR, STATE_FILE, TMP_DIR,
+    STATE_FILE,
     AUTO_RESTART_DELAY,
 )
 from core.models import BotInstance
@@ -63,7 +63,8 @@ class ProcessManager:
             STATE_FILE.write_text(
                 json.dumps(
                     [b.to_dict() for b in self.bots.values()],
-                    indent=2, ensure_ascii=False,
+                    indent=2,
+                    ensure_ascii=False,
                 ),
                 encoding="utf-8",
             )
@@ -100,71 +101,167 @@ class ProcessManager:
 
     # مكتبة stdlib شاملة لتجنب التثبيت غير الضروري
     _STDLIB = {
-        "os","sys","re","json","time","math","random","logging","threading",
-        "subprocess","pathlib","datetime","collections","functools","itertools",
-        "io","abc","copy","enum","typing","dataclasses","asyncio","concurrent",
-        "contextlib","inspect","hashlib","hmac","base64","urllib","http",
-        "socket","ssl","email","html","xml","csv","sqlite3","pickle","struct",
-        "traceback","warnings","gc","weakref","signal","shutil","tempfile",
-        "glob","fnmatch","stat","uuid","decimal","fractions","operator",
-        "string","textwrap","pprint","numbers","cmath","venv","argparse",
-        "configparser","platform","queue","array","heapq","bisect","calendar",
-        "locale","gettext","codecs","unicodedata","struct","binascii","zlib",
-        "gzip","bz2","lzma","zipfile","tarfile","csv","configparser",
-        "netrc","ftplib","imaplib","smtplib","poplib","xmlrpc","http",
-        "multiprocessing","concurrent","selectors","asynchat","asyncore",
-        "unittest","doctest","pdb","profile","timeit","trace","dis",
-        "ast","token","tokenize","keyword","symtable","compileall",
-        "builtins","__future__","_thread","atexit","abc","contextlib",
+        "os",
+        "sys",
+        "re",
+        "json",
+        "time",
+        "math",
+        "random",
+        "logging",
+        "threading",
+        "subprocess",
+        "pathlib",
+        "datetime",
+        "collections",
+        "functools",
+        "itertools",
+        "io",
+        "abc",
+        "copy",
+        "enum",
+        "typing",
+        "dataclasses",
+        "asyncio",
+        "concurrent",
+        "contextlib",
+        "inspect",
+        "hashlib",
+        "hmac",
+        "base64",
+        "urllib",
+        "http",
+        "socket",
+        "ssl",
+        "email",
+        "html",
+        "xml",
+        "csv",
+        "sqlite3",
+        "pickle",
+        "struct",
+        "traceback",
+        "warnings",
+        "gc",
+        "weakref",
+        "signal",
+        "shutil",
+        "tempfile",
+        "glob",
+        "fnmatch",
+        "stat",
+        "uuid",
+        "decimal",
+        "fractions",
+        "operator",
+        "string",
+        "textwrap",
+        "pprint",
+        "numbers",
+        "cmath",
+        "venv",
+        "argparse",
+        "configparser",
+        "platform",
+        "queue",
+        "array",
+        "heapq",
+        "bisect",
+        "calendar",
+        "locale",
+        "gettext",
+        "codecs",
+        "unicodedata",
+        "struct",
+        "binascii",
+        "zlib",
+        "gzip",
+        "bz2",
+        "lzma",
+        "zipfile",
+        "tarfile",
+        "csv",
+        "configparser",
+        "netrc",
+        "ftplib",
+        "imaplib",
+        "smtplib",
+        "poplib",
+        "xmlrpc",
+        "http",
+        "multiprocessing",
+        "concurrent",
+        "selectors",
+        "asynchat",
+        "asyncore",
+        "unittest",
+        "doctest",
+        "pdb",
+        "profile",
+        "timeit",
+        "trace",
+        "dis",
+        "ast",
+        "token",
+        "tokenize",
+        "keyword",
+        "symtable",
+        "compileall",
+        "builtins",
+        "__future__",
+        "_thread",
+        "atexit",
+        "abc",
+        "contextlib",
     }
 
     _PKG_MAP = {
-        "telegram":    "python-telegram-bot[job-queue]>=20.7",
-        "telebot":     "pyTelegramBotAPI",
-        "aiogram":     "aiogram",
-        "flask":       "flask",
-        "fastapi":     "fastapi uvicorn",
-        "aiohttp":     "aiohttp",
-        "requests":    "requests",
-        "httpx":       "httpx",
-        "pydantic":    "pydantic",
-        "sqlalchemy":  "sqlalchemy",
-        "pymongo":     "pymongo",
-        "redis":       "redis",
-        "celery":      "celery",
-        "PIL":         "Pillow",
-        "cv2":         "opencv-python",
-        "numpy":       "numpy",
-        "pandas":      "pandas",
-        "dotenv":      "python-dotenv",
-        "yaml":        "PyYAML",
-        "bs4":         "beautifulsoup4",
-        "lxml":        "lxml",
-        "openai":      "openai",
-        "anthropic":   "anthropic",
-        "google":      "google-generativeai",
-        "aiosqlite":   "aiosqlite",
-        "motor":       "motor",
+        "telegram": "python-telegram-bot[job-queue]>=20.7",
+        "telebot": "pyTelegramBotAPI",
+        "aiogram": "aiogram",
+        "flask": "flask",
+        "fastapi": "fastapi uvicorn",
+        "aiohttp": "aiohttp",
+        "requests": "requests",
+        "httpx": "httpx",
+        "pydantic": "pydantic",
+        "sqlalchemy": "sqlalchemy",
+        "pymongo": "pymongo",
+        "redis": "redis",
+        "celery": "celery",
+        "PIL": "Pillow",
+        "cv2": "opencv-python",
+        "numpy": "numpy",
+        "pandas": "pandas",
+        "dotenv": "python-dotenv",
+        "yaml": "PyYAML",
+        "bs4": "beautifulsoup4",
+        "lxml": "lxml",
+        "openai": "openai",
+        "anthropic": "anthropic",
+        "google": "google-generativeai",
+        "aiosqlite": "aiosqlite",
+        "motor": "motor",
         "apscheduler": "APScheduler",
-        "psutil":      "psutil",
-        "pytz":        "pytz",
-        "babel":       "Babel",
-        "cryptography":"cryptography",
-        "jwt":         "PyJWT",
-        "paramiko":    "paramiko",
-        "boto3":       "boto3",
-        "stripe":      "stripe",
-        "qrcode":      "qrcode[pil]",
-        "barcode":     "python-barcode",
-        "fpdf":        "fpdf2",
-        "docx":        "python-docx",
-        "openpyxl":    "openpyxl",
-        "matplotlib":  "matplotlib",
-        "seaborn":     "seaborn",
-        "sklearn":     "scikit-learn",
-        "torch":       "torch",
-        "tf":          "tensorflow",
-        "transformers":"transformers",
+        "psutil": "psutil",
+        "pytz": "pytz",
+        "babel": "Babel",
+        "cryptography": "cryptography",
+        "jwt": "PyJWT",
+        "paramiko": "paramiko",
+        "boto3": "boto3",
+        "stripe": "stripe",
+        "qrcode": "qrcode[pil]",
+        "barcode": "python-barcode",
+        "fpdf": "fpdf2",
+        "docx": "python-docx",
+        "openpyxl": "openpyxl",
+        "matplotlib": "matplotlib",
+        "seaborn": "seaborn",
+        "sklearn": "scikit-learn",
+        "torch": "torch",
+        "tf": "tensorflow",
+        "transformers": "transformers",
     }
 
     def detect_imports(self, bot: BotInstance) -> list[str]:
@@ -192,18 +289,35 @@ class ProcessManager:
                 bot.logs.append("🔧 إنشاء بيئة Python الافتراضية...")
                 venv.create(str(bot.env_path), with_pip=True)
                 subprocess.run(
-                    [self._python_exe(bot), "-m", "pip", "install",
-                     "--quiet", "--upgrade", "pip"],
-                    capture_output=True, timeout=120,
+                    [
+                        self._python_exe(bot),
+                        "-m",
+                        "pip",
+                        "install",
+                        "--quiet",
+                        "--upgrade",
+                        "pip",
+                    ],
+                    capture_output=True,
+                    timeout=120,
                 )
 
             req = bot.path / "requirements.txt"
             if req.exists():
                 bot.logs.append("📦 تثبيت requirements.txt...")
                 r = subprocess.run(
-                    [self._python_exe(bot), "-m", "pip", "install",
-                     "--quiet", "-r", str(req)],
-                    capture_output=True, text=True, timeout=480,
+                    [
+                        self._python_exe(bot),
+                        "-m",
+                        "pip",
+                        "install",
+                        "--quiet",
+                        "-r",
+                        str(req),
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=480,
                 )
                 if r.returncode != 0:
                     bot.logs.append(f"⚠️ pip stderr:\n{r.stderr[-600:]}")
@@ -214,9 +328,17 @@ class ProcessManager:
                 if detected:
                     bot.logs.append(f"🔍 مكتبات مكتشفة: {', '.join(detected)}")
                     r = subprocess.run(
-                        [self._python_exe(bot), "-m", "pip", "install",
-                         "--quiet", *detected],
-                        capture_output=True, text=True, timeout=480,
+                        [
+                            self._python_exe(bot),
+                            "-m",
+                            "pip",
+                            "install",
+                            "--quiet",
+                            *detected,
+                        ],
+                        capture_output=True,
+                        text=True,
+                        timeout=480,
                     )
                     if r.returncode == 0:
                         bot.logs.append("✅ مكتبات مثبَّتة")
@@ -246,7 +368,7 @@ class ProcessManager:
     #  Main file detection
     # ══════════════════════════════════════════════════════
     def find_main(self, bot: BotInstance) -> str:
-        for n in ("main.py","bot.py","app.py","run.py","start.py","index.py"):
+        for n in ("main.py", "bot.py", "app.py", "run.py", "start.py", "index.py"):
             if (bot.path / n).exists():
                 return n
         for f in sorted(bot.path.glob("*.py")):
@@ -254,8 +376,11 @@ class ProcessManager:
         return ""
 
     def list_py_files(self, bot: BotInstance) -> list[str]:
-        return [str(f.relative_to(bot.path)) for f in sorted(bot.path.rglob("*.py"))
-                if ".venv" not in f.parts]
+        return [
+            str(f.relative_to(bot.path))
+            for f in sorted(bot.path.rglob("*.py"))
+            if ".venv" not in f.parts
+        ]
 
     # ══════════════════════════════════════════════════════
     #  Process Start / Stop
@@ -307,8 +432,8 @@ class ProcessManager:
                 stderr=lf,
                 text=True,
             )
-            bot.pid        = bot.process.pid
-            bot.status     = "running"
+            bot.pid = bot.process.pid
+            bot.status = "running"
             bot.started_at = datetime.now()
             bot.logs.append(f"🚀 PID {bot.pid} | {bot.started_at.strftime('%H:%M:%S')}")
             self.save()
@@ -339,7 +464,7 @@ class ProcessManager:
         except Exception:
             pass
         bot.process = None
-        bot.pid     = None
+        bot.pid = None
 
     def stop(self, bot_id: str) -> tuple[bool, str]:
         bot = self.bots.get(bot_id)
@@ -381,7 +506,7 @@ class ProcessManager:
             if self._notifier:
                 self._notifier.queue("crash", bot, f"رمز الخروج: {code}")
             time.sleep(AUTO_RESTART_DELAY)
-            bot.status  = "stopped"
+            bot.status = "stopped"
             bot.restarts += 1
             self.start(bot_id)
         else:
@@ -421,6 +546,7 @@ class ProcessManager:
 
             # استخراج الجديد
             from utils.extractor import Extractor
+
             ok, err = Extractor.extract(new_archive, bot.path)
             if not ok:
                 raise RuntimeError(err)
@@ -457,8 +583,11 @@ class ProcessManager:
         if not bot:
             return {}
         d = dict(
-            status=bot.status, pid=bot.pid,
-            restarts=bot.restarts, cpu=0.0, mem=0.0,
+            status=bot.status,
+            pid=bot.pid,
+            restarts=bot.restarts,
+            cpu=0.0,
+            mem=0.0,
             uptime=bot.uptime_str,
         )
         if bot.pid and bot.status == "running":
@@ -471,13 +600,13 @@ class ProcessManager:
         return d
 
     def system_stats(self) -> dict:
-        mem  = psutil.virtual_memory()
+        mem = psutil.virtual_memory()
         disk = psutil.disk_usage("/")
-        cpu  = psutil.cpu_percent(interval=0.4)
-        up   = datetime.now() - datetime.fromtimestamp(psutil.boot_time())
+        cpu = psutil.cpu_percent(interval=0.4)
+        up = datetime.now() - datetime.fromtimestamp(psutil.boot_time())
         h, r = divmod(int(up.total_seconds()), 3600)
         m, _ = divmod(r, 60)
-        bots    = list(self.bots.values())
+        bots = list(self.bots.values())
         running = [b for b in bots if b.status == "running"]
         total_mem = sum(self.get_stats(b.bot_id).get("mem", 0) for b in running)
         return dict(
@@ -510,7 +639,7 @@ class ProcessManager:
         if not lines:
             lines = list(bot.logs)
         if search:
-            lines = [l for l in lines if search.lower() in l.lower()]
+            lines = [line for line in lines if search.lower() in line.lower()]
         return "\n".join(lines[-n:])
 
     def clear_logs(self, bot_id: str):
@@ -531,7 +660,8 @@ class ProcessManager:
         if query:
             q = query.lower()
             result = [
-                b for b in result
+                b
+                for b in result
                 if q in b.name.lower()
                 or q in b.bot_id.lower()
                 or q in b.username.lower()

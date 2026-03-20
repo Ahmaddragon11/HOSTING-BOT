@@ -26,11 +26,11 @@ def _can_import(mod: str) -> bool:
 
 def bootstrap():
     pkgs = [
-        ("telegram",    "python-telegram-bot[job-queue]>=20.7"),
-        ("psutil",      "psutil"),
-        ("dotenv",      "python-dotenv"),
-        ("httpx",       "httpx"),
-        ("aiofiles",    "aiofiles"),
+        ("telegram", "python-telegram-bot[job-queue]>=20.7"),
+        ("psutil", "psutil"),
+        ("dotenv", "python-dotenv"),
+        ("httpx", "httpx"),
+        ("aiofiles", "aiofiles"),
         ("apscheduler", "APScheduler>=3.10"),
     ]
     missing = [pkg for mod, pkg in pkgs if not _can_import(mod)]
@@ -83,7 +83,7 @@ def check_single_instance():
     if lock_file.exists():
         try:
             # قراءة PID من ملف القفل
-            with open(lock_file, 'r') as f:
+            with open(lock_file, "r") as f:
                 old_pid = int(f.read().strip())
 
             # فحص إذا كان العملية لا تزال تعمل
@@ -144,9 +144,9 @@ def main():
         return
 
     # إنشاء المكونات الأساسية
-    pm        = ProcessManager()
+    pm = ProcessManager()
     scheduler = BotScheduler(pm)
-    notifier  = Notifier(BOTFORGE_OWNER)
+    notifier = Notifier(BOTFORGE_OWNER)
 
     # بناء تطبيق Telegram
     try:
@@ -167,9 +167,12 @@ def main():
     # Post-init: يعمل بعد بدء التطبيق
     async def post_init(application: Application):
         from telegram import BotCommand
+
         me = await application.bot.get_me()
 
-        logger.info(f"BotForge جاهز: @{me.username} | المالك: {BOTFORGE_OWNER} | بوتات: {len(pm.bots)}")
+        logger.info(
+            f"BotForge جاهز: @{me.username} | المالك: {BOTFORGE_OWNER} | بوتات: {len(pm.bots)}"
+        )
 
         print("\n" + "═" * 58)
         print(f"  🚀  BotForge v4.0 يعمل!")
@@ -180,20 +183,22 @@ def main():
         print("═" * 58 + "\n")
 
         # تعيين قائمة الأوامر
-        await application.bot.set_my_commands([
-            BotCommand("start",     "🏠 الرئيسية"),
-            BotCommand("panel",     "🖥 لوحة التحكم"),
-            BotCommand("bots",      "📋 قائمة البوتات"),
-            BotCommand("add",       "➕ إضافة بوت"),
-            BotCommand("search",    "🔍 بحث في البوتات"),
-            BotCommand("stats",     "📊 إحصائيات النظام"),
-            BotCommand("logs",      "📋 سجلات بوت"),
-            BotCommand("start_bot", "▶️ تشغيل بوت"),
-            BotCommand("stop_bot",  "⏹ إيقاف بوت"),
-            BotCommand("restart",   "🔄 إعادة تشغيل"),
-            BotCommand("schedule",  "📅 جدولة مهمة"),
-            BotCommand("cancel",    "❌ إلغاء"),
-        ])
+        await application.bot.set_my_commands(
+            [
+                BotCommand("start", "🏠 الرئيسية"),
+                BotCommand("panel", "🖥 لوحة التحكم"),
+                BotCommand("bots", "📋 قائمة البوتات"),
+                BotCommand("add", "➕ إضافة بوت"),
+                BotCommand("search", "🔍 بحث في البوتات"),
+                BotCommand("stats", "📊 إحصائيات النظام"),
+                BotCommand("logs", "📋 سجلات بوت"),
+                BotCommand("start_bot", "▶️ تشغيل بوت"),
+                BotCommand("stop_bot", "⏹ إيقاف بوت"),
+                BotCommand("restart", "🔄 إعادة تشغيل"),
+                BotCommand("schedule", "📅 جدولة مهمة"),
+                BotCommand("cancel", "❌ إلغاء"),
+            ]
+        )
 
         # تشغيل المجدول
         scheduler.start()
@@ -219,7 +224,7 @@ def main():
         print("[BotForge] 👋 تم الإيقاف.")
         sys.exit(0)
 
-    signal.signal(signal.SIGINT,  _shutdown)
+    signal.signal(signal.SIGINT, _shutdown)
     signal.signal(signal.SIGTERM, _shutdown)
 
     try:

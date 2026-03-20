@@ -7,7 +7,6 @@ import asyncio
 import hashlib
 import time
 import logging
-from datetime import datetime
 
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler
@@ -15,7 +14,10 @@ from telegram.constants import ParseMode
 from telegram.error import BadRequest
 
 from core.config import (
-    ST_FILE, ST_NAME, ST_TOKEN, ST_UPDATE_FILE,
+    ST_FILE,
+    ST_NAME,
+    ST_TOKEN,
+    ST_UPDATE_FILE,
     TMP_DIR,
 )
 from core.models import BotInstance
@@ -57,10 +59,10 @@ class BotManager(BaseHandler):
         if not doc or not Extractor.is_allowed(doc.file_name):
             await update.message.reply_text("⚠️ أرسل .zip أو .tar.gz أو .py فقط")
             return ST_FILE
-        msg  = await update.message.reply_text("⏳ جاري تحميل الملف...")
-        uid  = update.effective_user.id
-        tmp  = TMP_DIR / f"{uid}_{doc.file_name}"
-        tgf  = await ctx.bot.get_file(doc.file_id)
+        msg = await update.message.reply_text("⏳ جاري تحميل الملف...")
+        uid = update.effective_user.id
+        tmp = TMP_DIR / f"{uid}_{doc.file_name}"
+        tgf = await ctx.bot.get_file(doc.file_id)
         await tgf.download_to_drive(tmp)
         s = self.sess(uid)
         s["file"] = tmp
@@ -92,14 +94,18 @@ class BotManager(BaseHandler):
     async def conv_token(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         if not self.is_owner(update):
             return ConversationHandler.END
-        self.sess(update.effective_user.id)["token"] = (update.message.text or "").strip()
+        self.sess(update.effective_user.id)["token"] = (
+            update.message.text or ""
+        ).strip()
         try:
             await update.message.delete()
         except Exception:
             pass
         return await self._finalize_add(update, ctx)
 
-    async def conv_skip_token(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    async def conv_skip_token(
+        self, update: Update, ctx: ContextTypes.DEFAULT_TYPE
+    ) -> int:
         await update.callback_query.answer()
         self.sess(update.effective_user.id)["token"] = ""
         return await self._finalize_add(update, ctx, from_cb=True)
@@ -107,28 +113,31 @@ class BotManager(BaseHandler):
     async def _finalize_add(
         self, update: Update, ctx: ContextTypes.DEFAULT_TYPE, from_cb: bool = False
     ) -> int:
-        uid   = update.effective_user.id
-        s     = self.sess(uid)
-        name  = s.get("name", "MyBot")
+        uid = update.effective_user.id
+        s = self.sess(uid)
+        name = s.get("name", "MyBot")
         token = s.get("token", "")
-        fp    = s.get("file")
+        fp = s.get("file")
 
-        target = update.message or (update.callback_query and update.callback_query.message)
+        target = update.message or (
+            update.callback_query and update.callback_query.message
+        )
         msg = await target.reply_text(
             "⚙️ *جاري الإعداد…*\n\n📦 استخراج الملفات…",
             parse_mode=ParseMode.MARKDOWN,
         )
 
         from core.config import BOTS_DIR
+
         bot_id = _gen_id(name)
-        dest   = BOTS_DIR / bot_id
+        dest = BOTS_DIR / bot_id
         ok, err = Extractor.extract(fp, dest)
         if not ok:
             await msg.edit_text(f"❌ فشل الاستخراج: {err}")
             self.sess_clear(uid)
             return ConversationHandler.END
 
-        b           = BotInstance(bot_id, name, dest, token)
+        b = BotInstance(bot_id, name, dest, token)
         b.main_file = self.pm.find_main(b)
 
         if token:
@@ -165,13 +174,19 @@ class BotManager(BaseHandler):
         )
 
         rows = [
-            [btn("▶️ تشغيل الآن", f"start:{bot_id}"),
-             btn("📋 معلومات",    f"info:{bot_id}")],
+            [
+                btn("▶️ تشغيل الآن", f"start:{bot_id}"),
+                btn("📋 معلومات", f"info:{bot_id}"),
+            ],
         ]
         if b.username:
-            rows.append([btn(f"↗️ فتح @{b.username}", url=f"https://t.me/{b.username}")])
+            rows.append(
+                [btn(f"↗️ فتح @{b.username}", url=f"https://t.me/{b.username}")]
+            )
 
-        await msg.edit_text(result, reply_markup=kb(*rows), parse_mode=ParseMode.MARKDOWN)
+        await msg.edit_text(
+            result, reply_markup=kb(*rows), parse_mode=ParseMode.MARKDOWN
+        )
         return ConversationHandler.END
 
     # ══════════════════════════════════════════════════════
@@ -181,7 +196,7 @@ class BotManager(BaseHandler):
         if not self.is_owner(update):
             return ConversationHandler.END
         bot_id = update.callback_query.data.split(":", 1)[1]
-        bot    = self.pm.bots.get(bot_id)
+        bot = self.pm.bots.get(bot_id)
         if not bot:
             await update.callback_query.answer("البوت غير موجود", show_alert=True)
             return ConversationHandler.END
@@ -196,7 +211,9 @@ class BotManager(BaseHandler):
         )
         return ST_UPDATE_FILE
 
-    async def recv_update_file(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    async def recv_update_file(
+        self, update: Update, ctx: ContextTypes.DEFAULT_TYPE
+    ) -> int:
         if not self.is_owner(update):
             return ConversationHandler.END
         doc = update.message.document
@@ -204,9 +221,9 @@ class BotManager(BaseHandler):
             await update.message.reply_text("⚠️ أرسل .zip أو .tar.gz أو .py")
             return ST_UPDATE_FILE
 
-        uid    = update.effective_user.id
+        uid = update.effective_user.id
         bot_id = self.sess(uid).get("update_target")
-        bot    = self.pm.bots.get(bot_id) if bot_id else None
+        bot = self.pm.bots.get(bot_id) if bot_id else None
         if not bot:
             await update.message.reply_text("❌ لم يُعثر على البوت")
             self.sess_clear(uid)
@@ -219,14 +236,16 @@ class BotManager(BaseHandler):
 
         await msg.edit_text("🔄 جاري تطبيق التحديث…")
         loop = asyncio.get_event_loop()
-        ok, result_msg = await loop.run_in_executor(
-            None, self.pm.update_code, bot, tmp
-        )
+        ok, result_msg = await loop.run_in_executor(None, self.pm.update_code, bot, tmp)
         tmp.unlink(missing_ok=True)
         self.sess_clear(uid)
 
-        keyboard = kb([btn("📋 معلومات البوت", f"info:{bot_id}"), btn("🏠 الرئيسية", "home")])
-        await msg.edit_text(result_msg, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN)
+        keyboard = kb(
+            [btn("📋 معلومات البوت", f"info:{bot_id}"), btn("🏠 الرئيسية", "home")]
+        )
+        await msg.edit_text(
+            result_msg, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN
+        )
         return ConversationHandler.END
 
     # ══════════════════════════════════════════════════════
@@ -247,8 +266,8 @@ class BotManager(BaseHandler):
         if not self.is_owner(update):
             await update.callback_query.answer("⛔", show_alert=True)
             return
-        q  = update.callback_query
-        d  = q.data
+        q = update.callback_query
+        d = q.data
         await q.answer()
 
         if d == "add":
@@ -293,12 +312,14 @@ class BotManager(BaseHandler):
                 await q.answer(f"إعادة تشغيل تلقائي: {lbl}", show_alert=True)
             await self._show_info(update, bot_id)
         elif action == "del_confirm":
-            bot  = self.pm.bots.get(bot_id)
+            bot = self.pm.bots.get(bot_id)
             name = bot.name if bot else bot_id
-            keyboard = kb([
-                btn("✅ نعم، احذف!", f"del_do:{bot_id}"),
-                btn("❌ إلغاء",      f"info:{bot_id}"),
-            ])
+            keyboard = kb(
+                [
+                    btn("✅ نعم، احذف!", f"del_do:{bot_id}"),
+                    btn("❌ إلغاء", f"info:{bot_id}"),
+                ]
+            )
             await q.edit_message_text(
                 f"⚠️ *تأكيد الحذف*\n\n"
                 f"هل أنت متأكد من حذف *{name}*؟\n"
@@ -307,7 +328,7 @@ class BotManager(BaseHandler):
                 parse_mode=ParseMode.MARKDOWN,
             )
         elif action == "del_do":
-            bot  = self.pm.bots.get(bot_id)
+            bot = self.pm.bots.get(bot_id)
             name = bot.name if bot else bot_id
             self.pm.remove(bot_id)
             await q.answer(f"✅ تم حذف {name}", show_alert=True)
@@ -315,7 +336,8 @@ class BotManager(BaseHandler):
         elif action == "reinstall":
             bot = self.pm.bots.get(bot_id)
             if not bot:
-                await q.answer("غير موجود", show_alert=True); return
+                await q.answer("غير موجود", show_alert=True)
+                return
             await q.edit_message_text("🔧 جاري إعادة تثبيت البيئة…")
             loop = asyncio.get_event_loop()
             ok, msg = await loop.run_in_executor(None, self.pm.reinstall_env, bot)
@@ -331,12 +353,12 @@ class BotManager(BaseHandler):
             if update.callback_query:
                 await update.callback_query.answer("البوت غير موجود!", show_alert=True)
             return
-        s   = self.pm.get_stats(bot_id)
-        e   = bot.status_emoji
-        ar  = "✅" if bot.auto_restart else "❌"
-        un  = f"@{bot.username}" if bot.username else "—"
-        cr  = bot.created_at[:10]
-        lu  = bot.last_updated[:10]
+        s = self.pm.get_stats(bot_id)
+        e = bot.status_emoji
+        ar = "✅" if bot.auto_restart else "❌"
+        un = f"@{bot.username}" if bot.username else "—"
+        cr = bot.created_at[:10]
+        lu = bot.last_updated[:10]
         text = (
             f"╔══ {e} *{bot.name}* ══╗\n\n"
             f"  🆔 ID: `{bot.bot_id}`\n"
@@ -346,31 +368,53 @@ class BotManager(BaseHandler):
             f"  🔄 تلقائي: {ar}   🔁 إعادات: `{bot.restarts}`\n"
             f"  📅 أُضيف: `{cr}`   🔧 آخر تحديث: `{lu}`\n"
         )
-        if s.get("uptime"):  text += f"  ⏱ وقت التشغيل: `{s['uptime']}`\n"
-        if s.get("pid"):     text += f"  🔧 PID: `{s['pid']}`\n"
-        if s.get("mem"):     text += f"  💾 RAM: `{s['mem']:.1f} MB`\n"
-        if s.get("cpu"):     text += f"  🖥 CPU: `{s['cpu']:.1f}%`\n"
-        if bot.env_vars:     text += f"  🔑 متغيرات البيئة: `{len(bot.env_vars)}`\n"
-        if bot.description:  text += f"  📝 الوصف: `{bot.description[:40]}`\n"
+        if s.get("uptime"):
+            text += f"  ⏱ وقت التشغيل: `{s['uptime']}`\n"
+        if s.get("pid"):
+            text += f"  🔧 PID: `{s['pid']}`\n"
+        if s.get("mem"):
+            text += f"  💾 RAM: `{s['mem']:.1f} MB`\n"
+        if s.get("cpu"):
+            text += f"  🖥 CPU: `{s['cpu']:.1f}%`\n"
+        if bot.env_vars:
+            text += f"  🔑 متغيرات البيئة: `{len(bot.env_vars)}`\n"
+        if bot.description:
+            text += f"  📝 الوصف: `{bot.description[:40]}`\n"
         text += "╚═══════════════════════╝"
 
         is_run = bot.status == "running"
         rows = [
-            [btn("⏹ إيقاف" if is_run else "▶️ تشغيل",
-                 f"{'stop' if is_run else 'start'}:{bot_id}"),
-             btn("🔄 إعادة تشغيل", f"restart:{bot_id}")],
-            [btn("📋 السجلات",     f"logs:{bot_id}"),
-             btn("📊 إحصائيات",   f"bstats:{bot_id}")],
-            [btn("🛠 إعدادات البوت", f"bot_ctrl:{bot_id}"),
-             btn("🔑 متغيرات البيئة", f"env_menu:{bot_id}")],
-            [btn("🔄 تحديث الكود", f"update:{bot_id}"),
-             btn("📅 الجدولة",    f"sched_menu:{bot_id}")],
-            [btn(f"{'❌' if bot.auto_restart else '✅'} تلقائي",
-                 f"toggle_ar:{bot_id}"),
-             btn("🔧 إعادة تثبيت", f"reinstall:{bot_id}")],
+            [
+                btn(
+                    "⏹ إيقاف" if is_run else "▶️ تشغيل",
+                    f"{'stop' if is_run else 'start'}:{bot_id}",
+                ),
+                btn("🔄 إعادة تشغيل", f"restart:{bot_id}"),
+            ],
+            [
+                btn("📋 السجلات", f"logs:{bot_id}"),
+                btn("📊 إحصائيات", f"bstats:{bot_id}"),
+            ],
+            [
+                btn("🛠 إعدادات البوت", f"bot_ctrl:{bot_id}"),
+                btn("🔑 متغيرات البيئة", f"env_menu:{bot_id}"),
+            ],
+            [
+                btn("🔄 تحديث الكود", f"update:{bot_id}"),
+                btn("📅 الجدولة", f"sched_menu:{bot_id}"),
+            ],
+            [
+                btn(
+                    f"{'❌' if bot.auto_restart else '✅'} تلقائي",
+                    f"toggle_ar:{bot_id}",
+                ),
+                btn("🔧 إعادة تثبيت", f"reinstall:{bot_id}"),
+            ],
         ]
         if bot.username:
-            rows.append([btn(f"↗️ فتح @{bot.username}", url=f"https://t.me/{bot.username}")])
+            rows.append(
+                [btn(f"↗️ فتح @{bot.username}", url=f"https://t.me/{bot.username}")]
+            )
         rows.append([btn("🗑 حذف", f"del_confirm:{bot_id}"), btn("↩️ القائمة", "list")])
 
         if update.callback_query:
@@ -397,13 +441,15 @@ class BotManager(BaseHandler):
             )
             return
         lines = ["📋 *قائمة البوتات:*\n"]
-        rows  = []
+        rows = []
         for b in bots:
-            s  = self.pm.get_stats(b.bot_id)
+            s = self.pm.get_stats(b.bot_id)
             up = f"  ⏱`{b.uptime_str}`" if b.uptime_str else ""
             mb = f"  💾`{s.get('mem',0):.0f}MB`" if s.get("mem") else ""
             lines.append(f"{b.status_emoji} *{b.name}* `[{b.bot_id}]`{up}{mb}")
-            rows.append([btn(f"{b.status_emoji} {b.name}  [{b.bot_id}]", f"info:{b.bot_id}")])
+            rows.append(
+                [btn(f"{b.status_emoji} {b.name}  [{b.bot_id}]", f"info:{b.bot_id}")]
+            )
         rows.append([btn("↩️ رجوع", "home")])
         await update.callback_query.edit_message_text(
             "\n".join(lines), reply_markup=kb(*rows), parse_mode=ParseMode.MARKDOWN
@@ -412,19 +458,22 @@ class BotManager(BaseHandler):
     # ══════════════════════════════════════════════════════
     #  Logs viewer
     # ══════════════════════════════════════════════════════
-    async def _show_logs(self, update: Update, bot_id: str,
-                          search: str = "", lines: int = 40):
-        bot  = self.pm.bots.get(bot_id)
+    async def _show_logs(
+        self, update: Update, bot_id: str, search: str = "", lines: int = 40
+    ):
+        bot = self.pm.bots.get(bot_id)
         name = bot.name if bot else bot_id
-        raw  = self.pm.get_logs(bot_id, n=lines, search=search)
+        raw = self.pm.get_logs(bot_id, n=lines, search=search)
         safe = (raw[-3500:] or "لا توجد سجلات").replace("`", "'")
-        lbl  = f" (بحث: {search})" if search else ""
+        lbl = f" (بحث: {search})" if search else ""
         text = f"📋 *سجلات {name}*{lbl}:\n\n```\n{safe}\n```"
         keyboard = kb(
-            [btn("🔄 تحديث",   f"logs:{bot_id}"),
-             btn("🗑 مسح",      f"clear_logs:{bot_id}"),
-             btn("📥 تحميل",   f"dl_log:{bot_id}")],
-            [btn("↩️ رجوع",   f"info:{bot_id}")],
+            [
+                btn("🔄 تحديث", f"logs:{bot_id}"),
+                btn("🗑 مسح", f"clear_logs:{bot_id}"),
+                btn("📥 تحميل", f"dl_log:{bot_id}"),
+            ],
+            [btn("↩️ رجوع", f"info:{bot_id}")],
         )
         try:
             await update.callback_query.edit_message_text(
@@ -441,8 +490,8 @@ class BotManager(BaseHandler):
     # ══════════════════════════════════════════════════════
     async def _show_bstats(self, update: Update, bot_id: str):
         bot = self.pm.bots.get(bot_id)
-        s   = self.pm.get_stats(bot_id)
-        e   = bot.status_emoji if bot else "⚪"
+        s = self.pm.get_stats(bot_id)
+        e = bot.status_emoji if bot else "⚪"
         text = (
             f"📊 *إحصائيات {bot.name if bot else bot_id}*\n\n"
             f"  {e} الحالة: `{s.get('status','—')}`\n"
@@ -453,8 +502,7 @@ class BotManager(BaseHandler):
             f"  🔁 إعادات التشغيل: `{s.get('restarts',0)}`\n"
         )
         keyboard = kb(
-            [btn("🔄 تحديث", f"bstats:{bot_id}"),
-             btn("↩️ رجوع",  f"info:{bot_id}")]
+            [btn("🔄 تحديث", f"bstats:{bot_id}"), btn("↩️ رجوع", f"info:{bot_id}")]
         )
         await update.callback_query.edit_message_text(
             text, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN
@@ -469,17 +517,19 @@ class BotManager(BaseHandler):
             return
         bot_id = ctx.args[0]
         search = " ".join(ctx.args[1:]) if len(ctx.args) > 1 else ""
-        raw    = self.pm.get_logs(bot_id, 50, search)
-        bot    = self.pm.bots.get(bot_id)
-        name   = bot.name if bot else bot_id
-        safe   = (raw[-4000:] or "لا توجد").replace("`", "'")
+        raw = self.pm.get_logs(bot_id, 50, search)
+        bot = self.pm.bots.get(bot_id)
+        name = bot.name if bot else bot_id
+        safe = (raw[-4000:] or "لا توجد").replace("`", "'")
         try:
             await update.message.reply_text(
                 f"📋 *سجلات {name}*:\n\n```\n{safe}\n```",
                 parse_mode=ParseMode.MARKDOWN,
             )
         except Exception:
-            await update.message.reply_text(f"سجلات {name}:\n{raw[-3000:] or 'لا توجد'}")
+            await update.message.reply_text(
+                f"سجلات {name}:\n{raw[-3000:] or 'لا توجد'}"
+            )
 
     async def cmd_start_bot(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         if not self.is_owner(update) or not ctx.args:
@@ -507,14 +557,16 @@ class BotManager(BaseHandler):
             await update.message.reply_text("الاستخدام: /delete <id>")
             return
         bot_id = ctx.args[0]
-        bot    = self.pm.bots.get(bot_id)
+        bot = self.pm.bots.get(bot_id)
         if not bot:
             await update.message.reply_text("❌ البوت غير موجود")
             return
-        keyboard = kb([
-            btn("✅ نعم احذف!", f"del_do:{bot_id}"),
-            btn("❌ إلغاء",     f"info:{bot_id}"),
-        ])
+        keyboard = kb(
+            [
+                btn("✅ نعم احذف!", f"del_do:{bot_id}"),
+                btn("❌ إلغاء", f"info:{bot_id}"),
+            ]
+        )
         await update.message.reply_text(
             f"⚠️ تأكيد حذف *{bot.name}*؟",
             reply_markup=keyboard,

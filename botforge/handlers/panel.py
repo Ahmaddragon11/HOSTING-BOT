@@ -24,7 +24,7 @@ class PanelHandler(BaseHandler):
             await update.message.reply_text("⛔ هذا البوت خاص.")
             return
         bots = self.pm.bots
-        run  = sum(1 for b in bots.values() if b.status == "running")
+        run = sum(1 for b in bots.values() if b.status == "running")
         text = (
             f"🤖 *BotForge v{VERSION}*\n"
             "━━━━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -33,16 +33,20 @@ class PanelHandler(BaseHandler):
             "اختر العملية:"
         )
         keyboard = kb(
-            [btn("🖥 لوحة التحكم",      "home"),
-             btn("📋 البوتات",           "list")],
-            [btn("➕ إضافة بوت",         "add"),
-             btn("🔍 بحث وتصفية",        "search_menu")],
-            [btn("📊 إحصائيات النظام",   "sys_stats"),
-             btn("📅 الجدول الزمني",     "sched_list:all")],
-            [btn("🔔 الإشعارات",         "notif_menu"),
-             btn("⚙️ إعدادات BotForge", "self_ctrl")],
+            [btn("🖥 لوحة التحكم", "home"), btn("📋 البوتات", "list")],
+            [btn("➕ إضافة بوت", "add"), btn("🔍 بحث وتصفية", "search_menu")],
+            [
+                btn("📊 إحصائيات النظام", "sys_stats"),
+                btn("📅 الجدول الزمني", "sched_list:all"),
+            ],
+            [
+                btn("🔔 الإشعارات", "notif_menu"),
+                btn("⚙️ إعدادات BotForge", "self_ctrl"),
+            ],
         )
-        await update.message.reply_text(text, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN)
+        await update.message.reply_text(
+            text, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN
+        )
 
     # ══════════════════════════════════════════════════════
     #  /panel
@@ -110,12 +114,12 @@ class PanelHandler(BaseHandler):
     #  Home
     # ══════════════════════════════════════════════════════
     async def _show_home(self, update: Update, edit: bool = True):
-        bots  = self.pm.bots
+        bots = self.pm.bots
         total = len(bots)
-        run   = sum(1 for b in bots.values() if b.status == "running")
+        run = sum(1 for b in bots.values() if b.status == "running")
         stop_ = sum(1 for b in bots.values() if b.status == "stopped")
-        err   = sum(1 for b in bots.values() if b.status == "error")
-        inst  = sum(1 for b in bots.values() if b.status == "installing")
+        err = sum(1 for b in bots.values() if b.status == "error")
+        inst = sum(1 for b in bots.values() if b.status == "installing")
         sys_s = self.pm.system_stats()
         text = (
             "╔══ 🖥 *BotForge Control Panel* ══╗\n\n"
@@ -131,19 +135,13 @@ class PanelHandler(BaseHandler):
             "╚══════════════════════════════╝"
         )
         keyboard = kb(
-            [btn("📋 البوتات",         "list"),
-             btn("➕ إضافة",           "add")],
-            [btn("🔍 بحث",             "search_menu")],
-            [btn("📊 إحصائيات",        "sys_stats"),
-             btn("🟢 تشغيل الكل",     "start_all")],
-            [btn("🔴 إيقاف الكل",     "stop_all"),
-             btn("📅 الجدول",          "sched_list:all")],
-            [btn("🔔 الإشعارات",      "notif_menu"),
-             btn("📦 نسخ احتياطي",    "backup")],
-            [btn("📋 إدارة السجلات",  "logs_menu"),
-             btn("🔄 تحديثات",        "updates")],
-            [btn("⚙️ إعدادات BotForge","self_ctrl"),
-             btn("🔄 تحديث",          "refresh_panel")],
+            [btn("📋 البوتات", "list"), btn("➕ إضافة", "add")],
+            [btn("🔍 بحث", "search_menu")],
+            [btn("📊 إحصائيات", "sys_stats"), btn("🟢 تشغيل الكل", "start_all")],
+            [btn("🔴 إيقاف الكل", "stop_all"), btn("📅 الجدول", "sched_list:all")],
+            [btn("🔔 الإشعارات", "notif_menu"), btn("📦 نسخ احتياطي", "backup")],
+            [btn("📋 إدارة السجلات", "logs_menu"), btn("🔄 تحديثات", "updates")],
+            [btn("⚙️ إعدادات BotForge", "self_ctrl"), btn("🔄 تحديث", "refresh_panel")],
         )
         await self.reply(update, text, keyboard, edit)
 
@@ -159,10 +157,8 @@ class PanelHandler(BaseHandler):
             "• **الكل**: البيانات + البوتات\n"
         )
         keyboard = kb(
-            [btn("📄 البيانات", "backup_data"),
-             btn("🤖 البوتات", "backup_bots")],
-            [btn("📦 الكل", "backup_all"),
-             btn("↩️ رجوع", "home")],
+            [btn("📄 البيانات", "backup_data"), btn("🤖 البوتات", "backup_bots")],
+            [btn("📦 الكل", "backup_all"), btn("↩️ رجوع", "home")],
         )
         await self.reply(update, text, keyboard, edit)
 
@@ -174,8 +170,7 @@ class PanelHandler(BaseHandler):
             "• **تنظيف السجلات**: حذف السجلات القديمة\n"
         )
         keyboard = kb(
-            [btn("📖 عرض السجلات", "logs_view"),
-             btn("🗑 تنظيف السجلات", "logs_clean")],
+            [btn("📖 عرض السجلات", "logs_view"), btn("🗑 تنظيف السجلات", "logs_clean")],
             [btn("↩️ رجوع", "home")],
         )
         await self.reply(update, text, keyboard, edit)
@@ -185,32 +180,38 @@ class PanelHandler(BaseHandler):
         await q.answer("⏳ جاري النسخ الاحتياطي...", show_alert=True)
         # تنفيذ النسخ الاحتياطي هنا
         # للتبسيط، أرسل رسالة
-        await q.edit_message_text("✅ تم إنشاء النسخ الاحتياطي بنجاح!\n\n(ميزة تجريبية)")
+        await q.edit_message_text(
+            "✅ تم إنشاء النسخ الاحتياطي بنجاح!\n\n(ميزة تجريبية)"
+        )
 
     # ══════════════════════════════════════════════════════
     #  Bot List
     # ══════════════════════════════════════════════════════
-    async def _show_list(self, update: Update, edit: bool = True,
-                         bots=None, title: str = "📋 *قائمة البوتات:*"):
+    async def _show_list(
+        self,
+        update: Update,
+        edit: bool = True,
+        bots=None,
+        title: str = "📋 *قائمة البوتات:*",
+    ):
         if bots is None:
             bots = list(self.pm.bots.values())
         if not bots:
             text = "📭 *لا توجد بوتات حالياً*\n\nأرسل ملفاً أو اضغط ➕ للإضافة"
-            keyboard = kb(
-                [btn("➕ إضافة بوت", "add"),
-                 btn("↩️ رجوع",      "home")]
-            )
+            keyboard = kb([btn("➕ إضافة بوت", "add"), btn("↩️ رجوع", "home")])
             await self.reply(update, text, keyboard, edit, md=ParseMode.MARKDOWN_V2)
             return
 
         lines = [f"{title}\n"]
-        rows  = []
+        rows = []
         for b in bots:
-            s  = self.pm.get_stats(b.bot_id)
+            s = self.pm.get_stats(b.bot_id)
             up = f"  ⏱`{b.uptime_str}`" if b.uptime_str else ""
             mb = f"  💾`{s.get('mem',0):.0f}MB`" if s.get("mem") else ""
             lines.append(f"{b.status_emoji} *{b.name}* `[{b.bot_id}]`{up}{mb}")
-            rows.append([btn(f"{b.status_emoji} {b.name}  [{b.bot_id}]", f"info:{b.bot_id}")])
+            rows.append(
+                [btn(f"{b.status_emoji} {b.name}  [{b.bot_id}]", f"info:{b.bot_id}")]
+            )
 
         rows.append([btn("🔍 بحث/تصفية", "search_menu"), btn("↩️ رجوع", "home")])
         await self.reply(update, "\n".join(lines), kb(*rows), edit)
@@ -240,12 +241,13 @@ class PanelHandler(BaseHandler):
             f"  • RAM المستخدم: `{s['bots_mem']:.1f} MB`\n"
         )
         keyboard = kb(
-            [btn("🔄 تحديث", "sys_stats"),
-             btn("📈 رسوم بيانية", "stats_graph")],
-            [btn("↩️ رجوع", "home")]
+            [btn("🔄 تحديث", "sys_stats"), btn("📈 رسوم بيانية", "stats_graph")],
+            [btn("↩️ رجوع", "home")],
         )
         await self.reply(update, text, keyboard, edit)
 
     # expose for other handlers
-    async def show_list(self, update, edit=True, bots=None, title="📋 *قائمة البوتات:*"):
+    async def show_list(
+        self, update, edit=True, bots=None, title="📋 *قائمة البوتات:*"
+    ):
         await self._show_list(update, edit, bots, title)

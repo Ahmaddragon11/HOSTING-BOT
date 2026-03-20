@@ -30,9 +30,9 @@ class SearchHandler(BaseHandler):
         if not self.is_owner(update):
             await update.callback_query.answer("⛔", show_alert=True)
             return
-        q  = update.callback_query
+        q = update.callback_query
         await q.answer()
-        d  = q.data
+        d = q.data
 
         if d == "search_menu":
             await self._show_search_menu(update)
@@ -48,16 +48,17 @@ class SearchHandler(BaseHandler):
             await self._do_search(update, query)
 
     async def _show_search_menu(self, update: Update, edit: bool = True):
-        text = (
-            "🔍 *بحث وتصفية البوتات*\n\n"
-            "اختر طريقة البحث:"
-        )
+        text = "🔍 *بحث وتصفية البوتات*\n\n" "اختر طريقة البحث:"
         keyboard = kb(
-            [btn("🟢 تعمل",   "filter_status:running"),
-             btn("🔴 متوقفة", "filter_status:stopped")],
-            [btn("🟠 أخطاء",  "filter_status:error"),
-             btn("📦 الكل",   "filter_status:all")],
-            [btn("↩️ رجوع",   "home")],
+            [
+                btn("🟢 تعمل", "filter_status:running"),
+                btn("🔴 متوقفة", "filter_status:stopped"),
+            ],
+            [
+                btn("🟠 أخطاء", "filter_status:error"),
+                btn("📦 الكل", "filter_status:all"),
+            ],
+            [btn("↩️ رجوع", "home")],
         )
         await self.reply(update, text, keyboard, edit)
 
@@ -65,8 +66,9 @@ class SearchHandler(BaseHandler):
         results = self.pm.search(query=query)
         await self._show_results(update, results, f'بحث: "{query}"', edit)
 
-    async def _show_results(self, update: Update, results: list,
-                             label: str, edit: bool = True):
+    async def _show_results(
+        self, update: Update, results: list, label: str, edit: bool = True
+    ):
         if not results:
             text = f"🔍 *{label}*\n\n📭 لا توجد نتائج"
             keyboard = kb([btn("↩️ رجوع", "search_menu"), btn("🏠 الرئيسية", "home")])
@@ -74,9 +76,9 @@ class SearchHandler(BaseHandler):
             return
 
         lines = [f"🔍 *{label}* — {len(results)} نتيجة:\n"]
-        rows  = []
+        rows = []
         for b in results:
-            s  = self.pm.get_stats(b.bot_id)
+            s = self.pm.get_stats(b.bot_id)
             up = f"  ⏱`{b.uptime_str}`" if b.uptime_str else ""
             mb = f"  💾`{s.get('mem',0):.0f}MB`" if s.get("mem") else ""
             lines.append(f"{b.status_emoji} *{b.name}* `[{b.bot_id}]`{up}{mb}")

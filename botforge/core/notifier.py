@@ -9,7 +9,7 @@ import logging
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from core.config import NOTIF_FILE, DEFAULT_NOTIF_SETTINGS, BOTFORGE_OWNER
+from core.config import NOTIF_FILE, DEFAULT_NOTIF_SETTINGS
 from core.models import BotInstance
 
 if TYPE_CHECKING:
@@ -67,20 +67,20 @@ class Notifier:
     #  Send
     # ══════════════════════════════════════════════════════
     _ICONS = {
-        "start":   "🟢",
-        "stop":    "🔴",
-        "error":   "🟠",
-        "crash":   "💥",
-        "update":  "🔄",
+        "start": "🟢",
+        "stop": "🔴",
+        "error": "🟠",
+        "crash": "💥",
+        "update": "🔄",
         "install": "📦",
     }
 
     _LABELS = {
-        "start":   "بدأ التشغيل",
-        "stop":    "أُوقف",
-        "error":   "خطأ",
-        "crash":   "انهار فجأة",
-        "update":  "تم التحديث",
+        "start": "بدأ التشغيل",
+        "stop": "أُوقف",
+        "error": "خطأ",
+        "crash": "انهار فجأة",
+        "update": "تم التحديث",
         "install": "تم التثبيت",
     }
 
@@ -108,9 +108,9 @@ class Notifier:
     async def _send(self, event: str, bot: BotInstance, extra: str = ""):
         if not self._app:
             return
-        icon  = self._ICONS.get(event, "ℹ️")
+        icon = self._ICONS.get(event, "ℹ️")
         label = self._LABELS.get(event, event)
-        text  = (
+        text = (
             f"{icon} *إشعار BotForge*\n\n"
             f"  🤖 البوت: *{bot.name}* `[{bot.bot_id}]`\n"
             f"  📌 الحدث: `{label}`\n"

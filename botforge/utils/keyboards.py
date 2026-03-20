@@ -34,7 +34,11 @@ def status_filter_kb(current: str = "all") -> InlineKeyboardMarkup:
         return btn(f"{prefix}{label}", f"filter_status:{val}")
 
     return kb(
-        [mk_btn("الكل", "all"), mk_btn("🟢 تعمل", "running"),
-         mk_btn("🔴 متوقفة", "stopped"), mk_btn("🟠 أخطاء", "error")],
+        [
+            mk_btn("الكل", "all"),
+            mk_btn("🟢 تعمل", "running"),
+            mk_btn("🔴 متوقفة", "stopped"),
+            mk_btn("🟠 أخطاء", "error"),
+        ],
         [btn("↩️ رجوع", "list")],
     )

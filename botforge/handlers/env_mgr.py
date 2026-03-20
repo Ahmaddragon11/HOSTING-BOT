@@ -25,9 +25,9 @@ class EnvManager(BaseHandler):
         if not self.is_owner(update):
             await update.callback_query.answer("⛔", show_alert=True)
             return
-        q  = update.callback_query
+        q = update.callback_query
         await q.answer()
-        d  = q.data
+        d = q.data
 
         if d.startswith("env_menu:"):
             bot_id = d.split(":", 1)[1]
@@ -44,20 +44,22 @@ class EnvManager(BaseHandler):
                 deleted = self.pm.delete_env_var(bot, key)
                 await q.answer(
                     f"✅ تم حذف {key}" if deleted else "❌ المتغير غير موجود",
-                    show_alert=True
+                    show_alert=True,
                 )
             await self._show_env_menu(update, bot_id)
 
     # ══════════════════════════════════════════════════════
     #  Conversation — إضافة متغير
     # ══════════════════════════════════════════════════════
-    async def start_add_env(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    async def start_add_env(
+        self, update: Update, ctx: ContextTypes.DEFAULT_TYPE
+    ) -> int:
         if not self.is_owner(update):
             return ConversationHandler.END
-        q      = update.callback_query
+        q = update.callback_query
         await q.answer()
         bot_id = q.data.split(":", 1)[1]
-        bot    = self.pm.bots.get(bot_id)
+        bot = self.pm.bots.get(bot_id)
         if not bot:
             await q.answer("البوت غير موجود", show_alert=True)
             return ConversationHandler.END
@@ -90,12 +92,12 @@ class EnvManager(BaseHandler):
     async def get_val(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         if not self.is_owner(update):
             return ConversationHandler.END
-        uid    = update.effective_user.id
-        s      = self.sess(uid)
+        uid = update.effective_user.id
+        s = self.sess(uid)
         bot_id = s.get("env_target", "")
-        key    = s.get("env_key", "")
-        val    = (update.message.text or "").strip()
-        bot    = self.pm.bots.get(bot_id)
+        key = s.get("env_key", "")
+        val = (update.message.text or "").strip()
+        bot = self.pm.bots.get(bot_id)
 
         # حذف الرسالة التي تحتوي القيمة (أمان)
         try:
@@ -112,8 +114,10 @@ class EnvManager(BaseHandler):
         self.sess_clear(uid)
 
         keyboard = kb(
-            [btn("🔑 إدارة المتغيرات", f"env_menu:{bot_id}"),
-             btn("📋 معلومات البوت",  f"info:{bot_id}")]
+            [
+                btn("🔑 إدارة المتغيرات", f"env_menu:{bot_id}"),
+                btn("📋 معلومات البوت", f"info:{bot_id}"),
+            ]
         )
         await update.message.reply_text(
             f"✅ تم حفظ المتغير:\n`{key}` = `{'*' * min(len(val), 8)}...`",
@@ -138,9 +142,11 @@ class EnvManager(BaseHandler):
             "هذه المتغيرات تُمرَّر للبوت عند التشغيل وتتفوق على أي قيم في `.env`"
         )
         keyboard = kb(
-            [btn("➕ إضافة متغير",    f"env_add:{bot_id}"),
-             btn("📋 عرض المتغيرات",  f"env_list:{bot_id}")],
-            [btn("↩️ رجوع",          f"info:{bot_id}")],
+            [
+                btn("➕ إضافة متغير", f"env_add:{bot_id}"),
+                btn("📋 عرض المتغيرات", f"env_list:{bot_id}"),
+            ],
+            [btn("↩️ رجوع", f"info:{bot_id}")],
         )
         await self.reply(update, text, keyboard)
 
@@ -154,13 +160,13 @@ class EnvManager(BaseHandler):
             return
 
         lines = [f"📋 *متغيرات البيئة — {bot.name}:*\n"]
-        rows  = []
+        rows = []
         for k, v in bot.env_vars.items():
             # إخفاء القيم الحساسة
             masked = v[:3] + "****" if len(v) > 3 else "****"
             lines.append(f"  `{k}` = `{masked}`")
-            rows.append([
-                btn(f"🗑 حذف {k}", f"env_del:{bot_id}:{k}")
-            ])
-        rows.append([btn("➕ إضافة", f"env_add:{bot_id}"), btn("↩️ رجوع", f"env_menu:{bot_id}")])
+            rows.append([btn(f"🗑 حذف {k}", f"env_del:{bot_id}:{k}")])
+        rows.append(
+            [btn("➕ إضافة", f"env_add:{bot_id}"), btn("↩️ رجوع", f"env_menu:{bot_id}")]
+        )
         await self.reply(update, "\n".join(lines), kb(*rows))
