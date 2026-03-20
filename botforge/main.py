@@ -51,6 +51,10 @@ bootstrap()
 # ══════════════════════════════════════════════════════════════
 import logging
 import signal
+import os
+import fcntl
+import time
+import psutil
 
 from telegram import Update
 from telegram.ext import Application
@@ -70,10 +74,62 @@ logger = logging.getLogger("BotForge.Main")
 
 
 # ══════════════════════════════════════════════════════════════
+#  SINGLE INSTANCE CHECK
+# ══════════════════════════════════════════════════════════════
+def check_single_instance():
+    """التأكد من عدم وجود نسخة أخرى تعمل من البوت"""
+    lock_file = BASE_DIR / ".botforge.lock"
+
+    if lock_file.exists():
+        try:
+            # قراءة PID من ملف القفل
+            with open(lock_file, 'r') as f:
+                old_pid = int(f.read().strip())
+
+            # فحص إذا كان العملية لا تزال تعمل
+            if psutil.pid_exists(old_pid):
+                logger.error(f"يوجد نسخة أخرى من BotForge تعمل (PID: {old_pid})")
+                print("❌ خطأ: يوجد نسخة أخرى من BotForge تعمل بالفعل!")
+                print("تأكد من إيقاف النسخة الأخرى قبل تشغيل هذه النسخة.")
+                return None
+            else:
+                # العملية السابقة توقفت، تنظيف ملف القفل
+                logger.info(f"تنظيف ملف قفل قديم (PID: {old_pid})")
+                lock_file.unlink(missing_ok=True)
+        except (OSError, ValueError):
+            # مشكلة في قراءة ملف القفل، تنظيفه
+            lock_file.unlink(missing_ok=True)
+
+    try:
+        # محاولة إنشاء ملف القفل
+        lock_fd = os.open(lock_file, os.O_CREAT | os.O_RDWR)
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+        # كتابة PID الحالي
+        os.write(lock_fd, str(os.getpid()).encode())
+        os.fsync(lock_fd)
+
+        logger.info(f"تم الحصول على قفل البوت (PID: {os.getpid()})")
+        # حفظ file descriptor للإغلاق لاحقاً
+        return lock_fd
+
+    except (OSError, BlockingIOError):
+        logger.error("يوجد نسخة أخرى من BotForge تعمل بالفعل!")
+        print("❌ خطأ: يوجد نسخة أخرى من BotForge تعمل بالفعل!")
+        print("تأكد من إيقاف النسخة الأخرى قبل تشغيل هذه النسخة.")
+        return None
+
+
+# ══════════════════════════════════════════════════════════════
 #  APPLICATION
 # ══════════════════════════════════════════════════════════════
 def main():
     logger.info("بدء تشغيل BotForge v4.0...")
+
+    # فحص النسخة الوحيدة
+    lock_fd = check_single_instance()
+    if lock_fd is None:
+        return
 
     # فحص الإعدادات الأساسية
     if not BOTFORGE_TOKEN:
@@ -93,7 +149,13 @@ def main():
     notifier  = Notifier(BOTFORGE_OWNER)
 
     # بناء تطبيق Telegram
-    app = Application.builder().token(BOTFORGE_TOKEN).build()
+    try:
+        app = Application.builder().token(BOTFORGE_TOKEN).build()
+        logger.info("تم بناء تطبيق Telegram بنجاح")
+    except Exception as e:
+        logger.error(f"فشل في بناء تطبيق Telegram: {e}")
+        print(f"❌ فشل في بناء تطبيق Telegram: {e}")
+        return
 
     # ربط الـ notifier بالتطبيق
     notifier.set_app(app)
@@ -145,17 +207,45 @@ def main():
         for b in list(pm.bots.values()):
             if b.status == "running":
                 pm.stop(b.bot_id)
+
+        # تنظيف ملف القفل
+        lock_file = BASE_DIR / ".botforge.lock"
+        try:
+            if lock_file.exists():
+                os.remove(lock_file)
+        except OSError:
+            pass
+
         print("[BotForge] 👋 تم الإيقاف.")
         sys.exit(0)
 
     signal.signal(signal.SIGINT,  _shutdown)
     signal.signal(signal.SIGTERM, _shutdown)
 
-    # تشغيل البوت
-    app.run_polling(
-        drop_pending_updates=True,
-        allowed_updates=Update.ALL_TYPES,
-    )
+    try:
+        # انتظار قصير للتأكد من إيقاف أي نسخة سابقة
+        logger.info("انتظار 5 ثوانٍ للتأكد من إيقاف أي نسخة سابقة...")
+        time.sleep(5)
+
+        # تشغيل البوت
+        logger.info("بدء الاستماع للتحديثات...")
+        app.run_polling(
+            drop_pending_updates=True,
+            allowed_updates=Update.ALL_TYPES,
+            poll_interval=1.0,  # ثانية واحدة بين كل استطلاع
+            timeout=30,  # 30 ثانية timeout لكل استطلاع
+        )
+    except Exception as e:
+        logger.error(f"خطأ في تشغيل البوت: {e}")
+        print(f"❌ خطأ في تشغيل البوت: {e}")
+    finally:
+        # تنظيف ملف القفل عند الخروج
+        lock_file = BASE_DIR / ".botforge.lock"
+        try:
+            if lock_file.exists():
+                os.remove(lock_file)
+        except OSError:
+            pass
 
 
 if __name__ == "__main__":

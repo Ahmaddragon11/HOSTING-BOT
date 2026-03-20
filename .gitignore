@@ -44,6 +44,7 @@ hosted_bots/
 data/
 .tmp/
 *.log
+.botforge.lock
 
 # Environment variables
 .env
